@@ -19,7 +19,7 @@ Confira que o PHP do XAMPP tem a extensão `pdo_mysql` ligada (vem ligada por
 padrão):
 
 ```bash
-"C:/xampp/php/php.exe" -m | grep pdo_mysql
+"C:/xamppv2/php/php.exe" -m | grep pdo_mysql
 ```
 
 ## 1. Deixar o Apache enxergar esta pasta
@@ -29,7 +29,7 @@ O jeito que não exige copiar arquivo nenhum é criar um atalho de pasta
 ajustando o caminho do repositório:
 
 ```powershell
-New-Item -ItemType Junction -Path 'C:\xampp\htdocs\nivergio-api' -Target 'C:\caminho\do\repo\backend'
+New-Item -ItemType Junction -Path 'C:\xamppv2\htdocs\nivergio-api' -Target 'C:\caminho\do\repo\backend'
 ```
 
 Com isso a API responde em `http://localhost/nivergio-api` e você edita os `.php`
@@ -39,24 +39,45 @@ nada.
 Conferir pra onde o atalho aponta, se precisar:
 
 ```powershell
-(Get-Item 'C:\xampp\htdocs\nivergio-api' -Force).Target
+(Get-Item 'C:\xamppv2\htdocs\nivergio-api' -Force).Target
 ```
 
-## 2. Descobrir em que porta está o MariaDB do XAMPP
+> ⚠️ **A junction não é uma cópia.** Apagar arquivos dentro de
+> `htdocs\nivergio-api` — pelo Explorer, limpando o `htdocs`, ou pelo
+> desinstalador do XAMPP — apaga os arquivos **de verdade** dentro de
+> `backend/`, no repositório. Já aconteceu neste projeto.
+>
+> Para tirar o atalho sem tocar no repositório, remova **só o link**:
+>
+> ```powershell
+> cmd /c rmdir "C:\xamppv2\htdocs\nivergio-api"
+> ```
+>
+> `rmdir` numa junction apaga apenas o atalho. `Remove-Item -Recurse` e o
+> `del /s` do Explorer entram no destino e levam o conteúdo junto.
+>
+> E lembre que `backend/.env` **não está no git** — se ele for apagado assim,
+> não há como recuperar pelo repositório, só pela Lixeira ou refazendo as
+> credenciais no cPanel.
 
-O padrão é 3306, mas se a máquina já tiver um MySQL Server instalado como serviço
-do Windows, ele ocupa a 3306 e o XAMPP fica em outra porta. Veja qual:
+## 2. Porta do MariaDB
+
+O padrão do XAMPP é 3306, mas nesta máquina a 3306 é do **MySQL Server 8.0**, que
+roda como serviço do Windows. Por isso o `my.ini` do xamppv2 foi ajustado para a
+**3307**, e os dois convivem sem que seja preciso desligar nada:
 
 ```bash
-grep -n "^port" "C:/xampp/mysql/bin/my.ini"
+grep -n "^port" "C:/xamppv2/mysql/bin/my.ini"
 ```
 
-O que vale é a porta da seção **`[mysqld]`** (o servidor). A da seção `[client]`
-é só o padrão da linha de comando — e é comum as duas estarem diferentes, o que
-significa que **o `mysql.exe` precisa de `-P` explícito**, senão você acaba
-conectando no banco errado sem perceber.
+O que vale é a porta da seção `[mysqld]` (o servidor). Uma coisa importante:
+**sempre passe `-h 127.0.0.1 -P 3307` no `mysql.exe`.** Ele não lê o `[client]`
+desse `my.ini`, então sem os parâmetros ele conecta no MySQL 8.0 da 3306 e você
+mexe no banco errado achando que é o do XAMPP — o sintoma é um erro de
+`caching_sha2_password`, que o MariaDB não usa.
 
-Nos exemplos abaixo a porta é `3308`; troque pela sua.
+Se um dia precisar voltar o XAMPP para a 3306, o arquivo original está salvo em
+`C:\xamppv2\mysql\bin\my.ini.bak-nivergio`.
 
 ## 3. Criar o banco e a tabela
 
@@ -64,11 +85,11 @@ Os dois comandos abaixo rodam **a partir da raiz do repositório** (é de lá qu
 caminho do `schema.sql` vale).
 
 ```bash
-"C:/xampp/mysql/bin/mysql.exe" -u root -h 127.0.0.1 -P 3308 -e "CREATE DATABASE IF NOT EXISTS nivergio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+"C:/xamppv2/mysql/bin/mysql.exe" -u root -h 127.0.0.1 -P 3307 -e "CREATE DATABASE IF NOT EXISTS nivergio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
 ```bash
-"C:/xampp/mysql/bin/mysql.exe" -u root -h 127.0.0.1 -P 3308 nivergio < backend/database/schema.sql
+"C:/xamppv2/mysql/bin/mysql.exe" -u root -h 127.0.0.1 -P 3307 nivergio < backend/database/schema.sql
 ```
 
 Pra recomeçar do zero depois, troque o primeiro comando por
@@ -81,7 +102,7 @@ Nesta pasta, um arquivo `.env.local`:
 
 ```
 DB_HOST=127.0.0.1
-DB_PORT=3308
+DB_PORT=3307
 DB_NAME=nivergio
 DB_USER=root
 DB_PASS=
@@ -97,8 +118,15 @@ pode continuar na pasta sem atrapalhar o desenvolvimento. Ele está no
 
 ## 5. Ligar
 
-No **XAMPP Control Panel**, botão **Start** em **Apache** e em **MySQL**. É isso
-que você faz toda vez que reiniciar o PC — os passos 1 a 4 são uma vez só.
+Abra o **XAMPP Control Panel do `C:\xamppv2`** — se houver outra instalação de
+XAMPP na máquina, não é ela — e dê **Start** em **Apache** e em **MySQL**.
+
+É só isso que você faz toda vez que reiniciar o PC; os passos 1 a 4 são uma vez
+só. Para conferir se os dois subiram:
+
+```bash
+netstat -ano -p tcp | grep LISTENING | grep -E ":80 |:3307 "
+```
 
 ## 6. Conferir
 

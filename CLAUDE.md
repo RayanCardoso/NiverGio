@@ -37,15 +37,22 @@ unit tests.
 
 ## Frontend (`frontend/`)
 
-- **Routing is Next.js App Router with route groups**: `app/(public)/page.jsx` is
-  `/`, `app/(private)/admin/page.jsx` is `/admin` (route groups don't affect the
-  URL). `app/layout.jsx` holds the root `<html>/<body>`, title, favicon and the
-  Google Fonts `<link>` tags.
-- **Within `/`, navigation is a single `stage` string** (`'video' | 'presentes' |
-  'info' | 'confirmar'`) in `useState` inside `app/(public)/page.jsx` (a client
-  component). Each stage renders one full-screen component from `screens/` and
-  passes callbacks (`onFinished`, `onOpenGifts`, `onOpenConfirm`, `onBack`) down
-  instead of using nested routes. `/admin` is a real, separate route.
+- **Routing is Next.js App Router with route groups** (route groups don't affect
+  the URL): `app/(public)/page.jsx` is `/`, `app/(public)/confirmacao/page.jsx`
+  is `/confirmacao`, `app/(private)/admin/page.jsx` is `/admin`.
+  `app/layout.jsx` holds the root `<html>/<body>`, title, favicon and the Google
+  Fonts `<link>` tags.
+- **`/` is only the opening video.** When it ends, `VideoPage`'s `onFinished`
+  calls `router.replace('/confirmacao')` — a real route change, not a state
+  change. That is deliberate: reloading must not replay the video, and `replace`
+  (not `push`) keeps the browser Back button from dropping the guest back into
+  it. Any internal link meant for "the invite" must point at `/confirmacao/`,
+  never `/`.
+- **Everything after the video lives at `/confirmacao`**, where navigation is a
+  single `stage` string (`'info' | 'presentes' | 'confirmar'`) in `useState`
+  inside `app/(public)/confirmacao/page.jsx` (a client component). Each stage
+  renders one full-screen component from `screens/` and passes callbacks
+  (`onOpenGifts`, `onOpenConfirm`, `onBack`) down instead of using nested routes.
 - **Screen components live in `frontend/screens/`** — deliberately not `pages/`,
   which Next reserves for the legacy Pages Router. Each screen has a co-located
   BEM-ish `.css` file imported directly into its `.jsx`.
@@ -115,3 +122,16 @@ only exception. The rules are intentionally unanchored so they keep working if
 folders move. Never commit, print, or paste the contents of `backend/.env`, and
 keep example values in the docs as placeholders (`SEU-DOMINIO.com`,
 `usuariocpanel_convite`).
+
+## Ambiente local (armadilhas conhecidas)
+
+- O Apache em uso é o de `C:\xamppv2` (existe outra instalação em `C:\xampp` que
+  não é a ativa). O MariaDB dele está na **3307** porque a 3306 é do serviço
+  MySQL Server 8.0 do Windows.
+- `mysql.exe` não lê o `[client]` do `my.ini` do XAMPP: sem `-h 127.0.0.1 -P 3307`
+  ele conecta no MySQL 8.0 e falha com `caching_sha2_password`.
+- `htdocs\nivergio-api` é uma **junction** para `backend/`, não uma cópia.
+  Apagar arquivos por lá apaga os do repositório — já aconteceu. Para remover o
+  atalho use `cmd /c rmdir`, nunca `Remove-Item -Recurse`.
+- `npm run build` trava se o `npm run dev` estiver aberto: os dois disputam
+  `frontend/.next`.

@@ -5,6 +5,24 @@
   background: var(--night);
   cursor: pointer;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* No celular o vídeo ocupa a tela inteira — é o formato pra que ele foi feito. */
+.video-page__frame {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* As lanternas só fazem sentido quando sobra fundo em volta do vídeo; no celular
+   ficariam atrás de uma imagem opaca, animando à toa. */
+.video-page .sparkles {
+  display: none;
 }
 
 .video-page__video {
@@ -85,5 +103,34 @@
   }
   50% {
     text-shadow: 0 0 30px rgba(240, 196, 84, 0.85), 0 2px 10px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* O vídeo é 1080x1920 (9:16), feito pra celular. Numa tela deitada, esticar ele
+   com object-fit: cover cortaria o topo e a base — então ele vira uma "tela de
+   celular" no centro, sobre o mesmo fundo de lanternas das outras telas. */
+@media (min-width: 700px) {
+  .video-page {
+    background: var(--page-sky);
+  }
+
+  .video-page .sparkles {
+    display: block;
+  }
+
+  .video-page__frame {
+    width: auto;
+    height: min(92svh, 880px);
+    aspect-ratio: 9 / 16;
+    /* Contraria o border-box global de propósito: com ele, o aspect-ratio valeria
+       para a caixa COM a borda, e a área interna deixaria de ser 9:16 — o
+       object-fit: cover voltaria a cortar as laterais do vídeo. */
+    box-sizing: content-box;
+    background: var(--night);
+    border: 10px solid #17102a;
+    border-radius: 44px;
+    box-shadow:
+      0 0 0 1.5px rgba(240, 196, 84, 0.3),
+      0 28px 70px rgba(var(--shadow-rgb), 0.55);
   }
 }

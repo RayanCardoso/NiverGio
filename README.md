@@ -25,8 +25,12 @@ produção:
 Na primeira vez, comece pelo backend: o front depende dele para a confirmação de
 presença e para o painel.
 
-Resumo, com tudo já configurado: **XAMPP Control Panel → Start em Apache e
-MySQL**, e depois `cd frontend && npm run dev`.
+Resumo, com tudo já configurado: abra o **XAMPP Control Panel do `C:\xamppv2`**,
+dê **Start** em Apache e MySQL, e depois `cd frontend && npm run dev`.
+
+⚠️ O Apache enxerga o backend por uma *junction* (`htdocs\nivergio-api` → esta
+pasta `backend/`). **Não é uma cópia**: apagar arquivos por lá apaga os do
+repositório. Detalhes em [backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente).
 
 ## Como o convite funciona
 
