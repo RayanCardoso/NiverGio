@@ -1,0 +1,55 @@
+:root {
+  --gold: #f0c454;
+  --gold-dark: #c9962e;
+  --purple: #5b3a7a;
+  --purple-dark: #402a5c;
+  --purple-light: #8a63ad;
+  --pink: #f6d3e0;
+  --cream: #fff8ef;
+  --ink: #3b2a4a;
+
+  --heading: 'Berkshire Swash', cursive;
+  --sans: 'Quicksand', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  font: 18px/145% var(--sans);
+  color-scheme: light;
+  color: var(--ink);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100svh;
+  width: 100%;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--heading);
+  font-weight: 400;
+  margin: 0;
+  color: var(--purple-dark);
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}

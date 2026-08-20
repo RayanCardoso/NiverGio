@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "PowerShell(node -v)",
+      "PowerShell(npm -v)",
+      "PowerShell(nvm list)",
+      "PowerShell(nvm list available 2>&1)",
+      "PowerShell(nvm use 20.20.1)",
+      "Bash(npm create *)"
+    ]
+  }
+}

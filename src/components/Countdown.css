@@ -1,0 +1,40 @@
+.countdown {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.countdown__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3d6, var(--gold) 70%);
+  border: 3px solid var(--gold-dark);
+  box-shadow: 0 4px 10px rgba(91, 58, 122, 0.25);
+}
+
+.countdown__value {
+  font-family: var(--heading);
+  font-size: 24px;
+  color: var(--purple-dark);
+  line-height: 1;
+}
+
+.countdown__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--purple-dark);
+  margin-top: 2px;
+}
+
+.countdown__done {
+  font-family: var(--heading);
+  font-size: 22px;
+  color: var(--gold);
+}
