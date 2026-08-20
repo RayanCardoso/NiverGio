@@ -10,7 +10,16 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.next
+out
 *.local
+
+# Credenciais (banco, senha do admin) — NUNCA commitar.
+# Regras sem barra valem em qualquer nível: cobrem src/backend/.env,
+# src/backend/.env.local e o .env.local da raiz, mesmo se as pastas mudarem.
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*

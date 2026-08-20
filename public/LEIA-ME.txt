@@ -1,6 +1,0 @@
-Coloque aqui os seus arquivos:
-
-- video.mp4              -> vídeo mostrado na primeira página
-- imagem-principal.jpg   -> imagem principal (tema Enrolados) da página de informações
-
-Depois de adicionar os arquivos, apague este LEIA-ME.txt (opcional).

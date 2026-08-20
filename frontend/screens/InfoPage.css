@@ -1,0 +1,219 @@
+.info-page {
+  position: relative;
+  min-height: 100svh;
+  background: var(--page-sky);
+  overflow: hidden;
+}
+
+.info-page__hero {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 40px 20px 110px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.info-page__hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(24, 18, 38, 0.05) 0%, rgba(24, 18, 38, 0.15) 55%, rgba(24, 18, 38, 0.78) 100%);
+}
+
+.info-page__title {
+  position: relative;
+  z-index: 2;
+  color: var(--cream);
+  font-size: clamp(28px, 6vw, 46px);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
+  padding-bottom: 16px;
+}
+
+.info-page__title::after {
+  content: '✦';
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  color: var(--gold);
+  font-size: 14px;
+}
+
+.info-page__image-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--page-sky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.info-page__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tower-fallback {
+  width: min(220px, 55vw);
+  height: auto;
+}
+
+.info-page__hint {
+  position: absolute;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #fff8ef;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: opacity 0.4s ease;
+}
+
+.info-page__hint.is-hidden {
+  opacity: 0;
+}
+
+.info-page__hint-arrow {
+  font-size: 20px;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.info-page__details {
+  position: relative;
+  z-index: 3;
+  background: linear-gradient(180deg, var(--purple) 0%, var(--purple-light) 100%);
+  border-radius: 28px 28px 0 0;
+  margin-top: -28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  padding: 46px 20px 70px;
+}
+
+.info-page__card {
+  background: rgba(255, 248, 239, 0.95);
+  border: 1px solid rgba(201, 150, 46, 0.6);
+  border-radius: 18px;
+  padding: 26px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 14px 32px rgba(var(--shadow-rgb), 0.3);
+  max-width: 380px;
+  width: 100%;
+}
+
+.info-page__date-label {
+  font-size: clamp(24px, 5vw, 32px);
+  color: var(--purple-dark);
+}
+
+.info-page__time-label {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--purple-light);
+  margin-top: -10px;
+}
+
+.info-page__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.info-page__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--cream);
+  background: transparent;
+  border: 1.5px solid rgba(255, 248, 239, 0.55);
+  border-radius: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.info-page__button:hover {
+  transform: translateY(-2px);
+  border-color: var(--cream);
+  background: rgba(255, 248, 239, 0.08);
+}
+
+.info-page__button:active {
+  transform: translateY(0);
+}
+
+/* botão principal (Confirmar presença) — única ação em destaque sólido,
+   as demais ficam como convite secundário, sem repetir o mesmo peso visual */
+.info-page__buttons .info-page__button:first-child {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--purple-dark);
+  background: var(--gold);
+  border-color: var(--gold-dark);
+  box-shadow: 0 10px 24px rgba(var(--shadow-rgb), 0.35);
+}
+
+.info-page__buttons .info-page__button:first-child:hover {
+  background: #f6d47c;
+  border-color: var(--gold-dark);
+}
+
+.info-page__button-icon {
+  font-size: 19px;
+}
+
+.info-page__dress-code {
+  text-align: center;
+  color: var(--cream);
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 248, 239, 0.25);
+  width: min(240px, 80%);
+}
+
+.info-page__dress-code-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+}
+
+.info-page__dress-code-value {
+  font-family: var(--heading);
+  font-size: 26px;
+  margin-top: 6px;
+  color: var(--gold);
+}
