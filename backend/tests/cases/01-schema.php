@@ -32,6 +32,14 @@ test('guid e codigo curto sao unicos', function () {
         $duplicated = true;
     }
     check($duplicated, 'guid repetido deveria ser recusado pelo indice UNIQUE');
+
+    $duplicated = false;
+    try {
+        $insert->execute(['guid' => '33333333-3333-4333-8333-333333333333', 'short' => 'AAAAAA']);
+    } catch (Throwable $e) {
+        $duplicated = true;
+    }
+    check($duplicated, 'short_code repetido deveria ser recusado pelo indice UNIQUE');
 });
 
 test('apagar um grupo apaga as pessoas dele em cascata', function () {
