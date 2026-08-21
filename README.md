@@ -1,43 +1,68 @@
 # Convite de Aniversário — Tema Enrolados 👑
 
-Site em React (Vite) com duas etapas:
+Convite de festa com confirmação de presença. São duas aplicações independentes
+no mesmo repositório, publicadas separadamente no mesmo domínio:
 
-1. **Página do vídeo** — mostra `video.mp4` em tela cheia. Ao clicar em qualquer lugar o vídeo começa a tocar (sem botão de play). Quando termina, avança automaticamente para a página de informações.
-2. **Página de informações** — imagem principal, dica "arraste para mais informações", data/hora estilizada com contagem regressiva, os 3 botões (Confirmar presença / Como chegar / Sugestões de presente) e o traje sugerido.
-
-## Como rodar
-
-```bash
-npm install
-npm run dev
+```
+frontend/   site em Next.js, exportado como HTML estático  -> public_html/
+backend/    API em PHP + MySQL, sem framework               -> public_html/api/
 ```
 
-Abra o endereço mostrado no terminal (normalmente http://localhost:5173).
+A raiz só guarda o que é do repositório inteiro: README, CLAUDE.md e .gitignore.
+O `package.json` e o `node_modules` pertencem ao front e ficam dentro de
+`frontend/`; o backend não tem gerenciador de pacotes.
 
-## O que você precisa configurar
+## Como rodar e como publicar
 
-### 1. Arquivos de mídia (pasta `public/`)
+Cada aplicação tem o próprio guia, com uma seção de ambiente local e outra de
+produção:
 
-Coloque nesta pasta:
+| | Rodar na sua máquina | Publicar na HostGator |
+|---|---|---|
+| **Frontend** | [frontend/DEPLOY.md](frontend/DEPLOY.md#rodar-localmente) | [frontend/DEPLOY.md](frontend/DEPLOY.md#publicar-em-produção-hostgator) |
+| **Backend** | [backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente) | [backend/DEPLOY.md](backend/DEPLOY.md#publicar-em-produção-hostgator) |
 
-- `video.mp4` — o vídeo da primeira página
-- `imagem-principal.jpg` — a imagem principal (tema Enrolados) da segunda página
+Na primeira vez, comece pelo backend: o front depende dele para a confirmação de
+presença e para o painel.
 
-Enquanto esses arquivos não existirem, o site mostra um aviso (na página do vídeo) e uma ilustração de torre de placeholder (na página de informações), então nada quebra.
+Resumo, com tudo já configurado: abra o **XAMPP Control Panel do `C:\xamppv2`**,
+dê **Start** em Apache e MySQL, e depois `cd frontend && npm run dev`.
 
-### 2. Data, hora, traje e links dos botões
+⚠️ O Apache enxerga o backend por uma *junction* (`htdocs\nivergio-api` → esta
+pasta `backend/`). **Não é uma cópia**: apagar arquivos por lá apaga os do
+repositório. Detalhes em [backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente).
 
-Tudo fica em [`src/config.js`](src/config.js):
+## Como o convite funciona
 
-- `EVENT_DATE` — data/hora reais da festa (usadas na contagem regressiva)
-- `EVENT_DATE_LABEL` / `EVENT_TIME_LABEL` — texto exibido
-- `DRESS_CODE` — traje sugerido
-- `LINKS` — quando quiser ativar os botões, cole ali o link de cada ação (WhatsApp, Google Maps, lista de presentes). Enquanto estiver vazio, o botão mostra um aviso "em breve".
+1. **Vídeo** em tela cheia; começa a tocar no primeiro toque e, ao terminar,
+   avança sozinho.
+2. **Informações** — imagem principal, contagem regressiva, traje sugerido e três
+   botões: confirmar presença, como chegar, sugestões de presente.
+3. **Confirmar presença** — a pessoa entra com nome e email. O email é a chave
+   (entrar de novo com o mesmo email abre a confirmação anterior para editar), e
+   o nome existe porque **quem confirma também é convidado** e entra na contagem.
+   Depois ela adiciona quantos acompanhantes quiser.
+4. **Presentes** — sugestões e a chave PIX com toque para copiar.
+5. **`/admin`** — painel do organizador, protegido por senha: total de pessoas,
+   total de confirmações, total de acompanhantes, quantos vêm sozinhos, a tabela
+   completa com busca, e exportação em CSV.
 
-## Build para publicar
+Conteúdo da festa (data, hora, traje, PIX, sugestões de presente) fica todo em
+[`frontend/config.js`](frontend/config.js).
 
-```bash
-npm run build
-```
+Não há suíte de testes. O backend só roda pelo XAMPP, então mudanças nele se
+verificam batendo nos endpoints — os comandos estão no guia do backend.
 
-Gera a pasta `dist/` pronta para subir em qualquer hospedagem estática (Vercel, Netlify, GitHub Pages etc.). Lembre-se de incluir `video.mp4` e `imagem-principal.jpg` dentro de `public/` antes do build.
+## Dados sensíveis
+
+Nada de credencial entra no git. O `.gitignore` bloqueia `.env` e `.env.*` em
+qualquer pasta (só o `.env.example` passa), o que cobre:
+
+| Arquivo | O que guarda |
+|---|---|
+| `backend/.env` | banco e senha do painel, **produção** |
+| `backend/.env.local` | banco local, sobrepõe o `.env` na sua máquina |
+| `frontend/.env.local` | para onde o proxy do Next manda `/api/*` |
+
+Os dois guias de deploy usam só valores de exemplo. Ao pedir ajuda ou colar log
+em algum lugar, confira que não foi junto o conteúdo de um `.env`.

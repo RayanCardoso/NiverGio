@@ -1,0 +1,52 @@
+.sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sparkle {
+  position: absolute;
+  bottom: -40px;
+  width: 9px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3d6 0%, var(--gold) 70%, transparent 100%);
+  box-shadow: 0 0 9px 3px rgba(240, 196, 84, 0.55);
+  animation: float-up linear infinite;
+  opacity: 0.8;
+}
+
+/* tamanhos variados lembram as lanternas de Enrolados subindo ao céu,
+   em vez de um efeito de partículas uniforme e genérico */
+.sparkle--0 { left: 6%; width: 7px; height: 9px; --drift: -12px; animation-duration: 14s; animation-delay: 0s; }
+.sparkle--1 { left: 15%; width: 13px; height: 17px; --drift: 28px; animation-duration: 18s; animation-delay: 2s; }
+.sparkle--2 { left: 24%; width: 8px; height: 10px; --drift: 8px; animation-duration: 12s; animation-delay: 4s; }
+.sparkle--3 { left: 33%; width: 11px; height: 14px; --drift: -22px; animation-duration: 20s; animation-delay: 1s; }
+.sparkle--4 { left: 42%; width: 7px; height: 9px; --drift: 15px; animation-duration: 16s; animation-delay: 6s; }
+.sparkle--5 { left: 51%; width: 15px; height: 19px; --drift: -30px; animation-duration: 13s; animation-delay: 3s; }
+.sparkle--6 { left: 60%; width: 9px; height: 11px; --drift: 10px; animation-duration: 19s; animation-delay: 5s; }
+.sparkle--7 { left: 68%; width: 12px; height: 15px; --drift: -18px; animation-duration: 15s; animation-delay: 0.5s; }
+.sparkle--8 { left: 76%; width: 7px; height: 9px; --drift: 24px; animation-duration: 21s; animation-delay: 7s; }
+.sparkle--9 { left: 84%; width: 10px; height: 13px; --drift: -9px; animation-duration: 17s; animation-delay: 2.5s; }
+.sparkle--10 { left: 91%; width: 8px; height: 10px; --drift: 19px; animation-duration: 14s; animation-delay: 4.5s; }
+.sparkle--11 { left: 10%; width: 14px; height: 18px; --drift: -26px; animation-duration: 22s; animation-delay: 8s; }
+.sparkle--12 { left: 55%; width: 9px; height: 11px; --drift: 13px; animation-duration: 11s; animation-delay: 9s; }
+.sparkle--13 { left: 88%; width: 11px; height: 14px; --drift: -16px; animation-duration: 16s; animation-delay: 1.5s; }
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-110vh) translateX(var(--drift, 20px));
+    opacity: 0;
+  }
+}

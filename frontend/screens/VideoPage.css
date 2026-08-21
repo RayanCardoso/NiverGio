@@ -1,0 +1,136 @@
+.video-page {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  background: var(--night);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* No celular o vídeo ocupa a tela inteira — é o formato pra que ele foi feito. */
+.video-page__frame {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* As lanternas só fazem sentido quando sobra fundo em volta do vídeo; no celular
+   ficariam atrás de uma imagem opaca, animando à toa. */
+.video-page .sparkles {
+  display: none;
+}
+
+.video-page__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-page__hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(36, 28, 58, 0.05) 0%, rgba(24, 18, 38, 0.55) 100%);
+  pointer-events: none;
+}
+
+.video-page__hint-text {
+  position: relative;
+  font-family: var(--heading);
+  font-size: clamp(24px, 5.5vw, 38px);
+  color: var(--cream);
+  text-shadow: 0 0 24px rgba(240, 196, 84, 0.65), 0 2px 10px rgba(0, 0, 0, 0.55);
+  padding-bottom: 10px;
+  animation: video-glow 2.4s ease-in-out infinite;
+}
+
+.video-page__hint-text::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 2px;
+  background: var(--gold);
+  opacity: 0.8;
+}
+
+.video-page__hint--error {
+  pointer-events: auto;
+  background: rgba(24, 18, 38, 0.88);
+  text-align: center;
+  padding: 24px;
+}
+
+.video-page__hint--error .video-page__hint-text {
+  animation: none;
+  font-family: var(--sans);
+  font-size: 16px;
+  text-shadow: none;
+}
+
+.video-page__hint--error .video-page__hint-text::after {
+  display: none;
+}
+
+.video-page__skip {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--cream);
+  background: transparent;
+  border: 1.5px solid var(--gold);
+  padding: 11px 24px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+@keyframes video-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 18px rgba(240, 196, 84, 0.5), 0 2px 10px rgba(0, 0, 0, 0.55);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(240, 196, 84, 0.85), 0 2px 10px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* O vídeo é 1080x1920 (9:16), feito pra celular. Numa tela deitada, esticar ele
+   com object-fit: cover cortaria o topo e a base — então ele vira uma "tela de
+   celular" no centro, sobre o mesmo fundo de lanternas das outras telas. */
+@media (min-width: 700px) {
+  .video-page {
+    background: var(--page-sky);
+  }
+
+  .video-page .sparkles {
+    display: block;
+  }
+
+  .video-page__frame {
+    width: auto;
+    height: min(92svh, 880px);
+    aspect-ratio: 9 / 16;
+    /* Contraria o border-box global de propósito: com ele, o aspect-ratio valeria
+       para a caixa COM a borda, e a área interna deixaria de ser 9:16 — o
+       object-fit: cover voltaria a cortar as laterais do vídeo. */
+    box-sizing: content-box;
+    background: var(--night);
+    border: 10px solid #17102a;
+    border-radius: 44px;
+    box-shadow:
+      0 0 0 1.5px rgba(240, 196, 84, 0.3),
+      0 28px 70px rgba(var(--shadow-rgb), 0.55);
+  }
+}

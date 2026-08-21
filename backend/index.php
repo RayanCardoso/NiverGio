@@ -1,0 +1,61 @@
+<?php
+
+use App\Config\Env;
+use App\Controllers\AdminController;
+use App\Controllers\RsvpController;
+use App\Http\Request;
+use App\Http\Response;
+use App\Http\Router;
+
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    if (strpos($class, $prefix) !== 0) {
+        return;
+    }
+    $relative = substr($class, strlen($prefix));
+    $file = __DIR__ . '/src/' . str_replace('\\', '/', $relative) . '.php';
+    if (file_exists($file)) {
+        require $file;
+    }
+});
+
+// A API só fala JSON: aviso ou stack trace impresso no corpo quebra o
+// res.json() do front e ainda vaza caminho de arquivo do servidor. Então erro
+// nenhum vai pra resposta — vai todo pro log de erros da conta (na HostGator,
+// cPanel → Erros, ou o arquivo "error_log" que aparece ao lado do index.php).
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
+
+// Sem isto, qualquer erro fora do connect — coluna que não existe, tabela que
+// não existe, privilégio faltando no usuário do banco — vira fatal do PHP: o
+// Apache devolve 500 de corpo vazio e não sobra pista nenhuma pra quem olha de
+// fora. Aqui o motivo real fica no log e o cliente ainda recebe JSON.
+set_exception_handler(function ($e) {
+    error_log(sprintf(
+        '[nivergio-api] %s: %s em %s:%d',
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine()
+    ));
+    Response::json(['error' => 'Erro interno no servidor.'], 500);
+});
+
+// .env.local (opcional, só na máquina do dev) tem prioridade sobre o .env.
+Env::load(__DIR__ . '/.env.local');
+Env::load(__DIR__ . '/.env');
+
+$router = new Router();
+$router->get('/rsvp', function () {
+    (new RsvpController())->lookup();
+});
+$router->post('/rsvp', function () {
+    (new RsvpController())->save();
+});
+$router->post('/admin', function () {
+    (new AdminController())->list();
+});
+
+$route = isset($_GET['route']) ? '/' . trim($_GET['route'], '/') : '/';
+$router->dispatch(Request::method(), $route);

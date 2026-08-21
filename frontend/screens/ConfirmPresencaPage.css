@@ -1,0 +1,218 @@
+.confirm-page {
+  position: relative;
+  min-height: 100svh;
+  background: var(--page-sky);
+  overflow: hidden;
+}
+
+.confirm-page__content {
+  position: relative;
+  z-index: 2;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.confirm-page__back {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--cream);
+  background: none;
+  border: none;
+  padding: 8px 2px;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.confirm-page__back:hover {
+  opacity: 1;
+}
+
+.confirm-page__title {
+  color: var(--cream);
+  font-size: clamp(26px, 6vw, 38px);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.35);
+  margin-top: 4px;
+}
+
+.confirm-page__card {
+  background: rgba(255, 248, 239, 0.95);
+  border: 1px solid rgba(201, 150, 46, 0.5);
+  border-radius: 18px;
+  padding: 26px 24px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  box-shadow: 0 14px 32px rgba(var(--shadow-rgb), 0.3);
+  text-align: left;
+}
+
+.confirm-page__greeting {
+  font-family: var(--heading);
+  font-size: 22px;
+  color: var(--purple-dark);
+  text-align: center;
+}
+
+.confirm-page__hint {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--purple-light);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.confirm-page__label {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--purple-dark);
+}
+
+.confirm-page__input {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1.5px solid rgba(201, 150, 46, 0.5);
+  border-radius: 10px;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.confirm-page__input:focus-visible {
+  border-color: var(--gold-dark);
+}
+
+.confirm-page__companions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.confirm-page__companion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--pink);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--purple-dark);
+}
+
+.confirm-page__companion-remove {
+  background: none;
+  border: none;
+  color: var(--purple-dark);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.confirm-page__add-companion {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-page__add-companion .confirm-page__input {
+  flex: 1;
+}
+
+.confirm-page__add-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--purple-dark);
+  background: var(--pink);
+  border: 1.5px solid rgba(201, 150, 46, 0.4);
+  border-radius: 10px;
+  padding: 0 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.confirm-page__error {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  color: #a33;
+  text-align: center;
+}
+
+.confirm-page__submit {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--purple-dark);
+  background: var(--gold);
+  border: 1.5px solid var(--gold-dark);
+  border-radius: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0 10px 24px rgba(var(--shadow-rgb), 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.confirm-page__submit:hover {
+  transform: translateY(-2px);
+  background: #f6d47c;
+}
+
+.confirm-page__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
+/* Segundo campo do formulário de entrada (nome + email) precisa respirar. */
+.confirm-page__input + .confirm-page__label {
+  margin-top: 6px;
+}
+
+/* Quem confirmou aparece na lista junto com os acompanhantes, mas sem o botão
+   de remover — ela não tem como se tirar da própria confirmação. */
+.confirm-page__companion--you {
+  background: var(--gold);
+  border: 1.5px solid rgba(201, 150, 46, 0.55);
+}
+
+.confirm-page__companion-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  padding-right: 4px;
+}
+
+.confirm-page__total {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--purple-dark);
+  text-align: center;
+  margin-top: 4px;
+}
