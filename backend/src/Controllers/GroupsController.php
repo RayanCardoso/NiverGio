@@ -247,6 +247,62 @@ class GroupsController
         Response::json(['ok' => true]);
     }
 
+    public function destroy()
+    {
+        AdminSession::guard();
+
+        $body = Request::json();
+        $groupId = isset($body['id']) ? (int) $body['id'] : 0;
+
+        // As pessoas do grupo somem pela FK ON DELETE CASCADE do schema — não
+        // há um DELETE separado que possa ser esquecido aqui.
+        $stmt = Connection::get()->prepare('DELETE FROM guest_groups WHERE id = :id');
+        $stmt->execute(['id' => $groupId]);
+
+        if ($stmt->rowCount() === 0) {
+            Response::json(['error' => 'Grupo não encontrado.'], 404);
+            return;
+        }
+
+        Response::json(['ok' => true]);
+    }
+
+    public function markMessageSent()
+    {
+        AdminSession::guard();
+
+        $body = Request::json();
+        $groupId = isset($body['id']) ? (int) $body['id'] : 0;
+        $sent = isset($body['sent']) ? (bool) $body['sent'] : false;
+
+        $pdo = Connection::get();
+
+        // NOW() do banco e não date() do PHP: as outras datas do sistema
+        // (responded_at, created_at) vêm do relógio do banco, e nesta
+        // hospedagem os dois relógios podem estar em fusos diferentes — o
+        // painel mostraria "enviado às" e "respondido às" em relógios
+        // distintos na mesma linha.
+        if ($sent) {
+            $stmt = $pdo->prepare('UPDATE guest_groups SET message_sent_at = NOW() WHERE id = :id');
+        } else {
+            $stmt = $pdo->prepare('UPDATE guest_groups SET message_sent_at = NULL WHERE id = :id');
+        }
+        $stmt->execute(['id' => $groupId]);
+
+        // rowCount() do UPDATE também é 0 quando o valor já era o mesmo, então
+        // quem decide se o grupo existe é esta consulta, não o rowCount.
+        $check = $pdo->prepare('SELECT message_sent_at FROM guest_groups WHERE id = :id LIMIT 1');
+        $check->execute(['id' => $groupId]);
+        $row = $check->fetch();
+
+        if (!$row) {
+            Response::json(['error' => 'Grupo não encontrado.'], 404);
+            return;
+        }
+
+        Response::json(['ok' => true, 'message_sent_at' => $row['message_sent_at']]);
+    }
+
     protected static function cleanName($value)
     {
         return trim((string) $value);
