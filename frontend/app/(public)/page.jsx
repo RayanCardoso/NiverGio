@@ -9,9 +9,16 @@ import VideoPage from '../../screens/VideoPage.jsx'
 function AberturaPage() {
   const router = useRouter()
 
+  // O código da família chega em "?c=..." e precisa atravessar a troca de rota.
+  // Sem isso, quem abriu o link certo cairia na tela de digitar código.
+  const handleFinished = () => {
+    const code = new URLSearchParams(window.location.search).get('c')
+    router.replace(code ? `/confirmacao/?c=${encodeURIComponent(code)}` : '/confirmacao/')
+  }
+
   // replace, não push: o vídeo é uma abertura de uma vez só, então voltar pra
   // ele pelo botão do navegador só faria o convidado esperar de novo.
-  return <VideoPage onFinished={() => router.replace('/confirmacao')} />
+  return <VideoPage onFinished={handleFinished} />
 }
 
 export default AberturaPage

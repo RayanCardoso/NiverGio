@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import InfoPage from '../../../screens/InfoPage.jsx'
 import GiftsPage from '../../../screens/GiftsPage.jsx'
 import ConfirmPresencaPage from '../../../screens/ConfirmPresencaPage.jsx'
@@ -10,12 +10,20 @@ import ConfirmPresencaPage from '../../../screens/ConfirmPresencaPage.jsx'
 // abertas a partir daqui e sem link direto pra elas.
 function ConfirmacaoPage() {
   const [stage, setStage] = useState('info') // 'info' | 'presentes' | 'confirmar'
+  const [code, setCode] = useState('')
+
+  // window.location e não useSearchParams: com output:'export' o useSearchParams
+  // obriga a envolver a página num <Suspense> só pra o build passar, sem ganho
+  // nenhum para ler uma query string.
+  useEffect(() => {
+    setCode(new URLSearchParams(window.location.search).get('c') || '')
+  }, [])
 
   if (stage === 'presentes') {
     return <GiftsPage onBack={() => setStage('info')} />
   }
   if (stage === 'confirmar') {
-    return <ConfirmPresencaPage onBack={() => setStage('info')} />
+    return <ConfirmPresencaPage code={code} onBack={() => setStage('info')} />
   }
   return (
     <InfoPage
