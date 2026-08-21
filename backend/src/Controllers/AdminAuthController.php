@@ -28,6 +28,7 @@ class AdminAuthController
 
     public function logout()
     {
+        AdminSession::guard();
         AdminSession::logout();
         Response::json(['ok' => true]);
     }

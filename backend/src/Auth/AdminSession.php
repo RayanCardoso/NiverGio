@@ -31,7 +31,13 @@ class AdminSession
         $pdo->exec('DELETE FROM admin_sessions WHERE expires_at < NOW()');
 
         $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', time() + self::LIFETIME_HOURS * 3600);
+
+        // Vencimento vem do relógio do banco, não do PHP: é o mesmo NOW() com
+        // que o isValid() compara. Com fusos diferentes entre PHP e MySQL na
+        // hospedagem, a sessão duraria mais ou menos que as 12h combinadas.
+        $expiresAt = $pdo
+            ->query('SELECT DATE_ADD(NOW(), INTERVAL ' . self::LIFETIME_HOURS . ' HOUR) AS expires_at')
+            ->fetch()['expires_at'];
 
         $stmt = $pdo->prepare('INSERT INTO admin_sessions (token_hash, expires_at) VALUES (:hash, :expires)');
         $stmt->execute(['hash' => hash('sha256', $token), 'expires' => $expiresAt]);

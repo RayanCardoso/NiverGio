@@ -24,9 +24,18 @@ test('login com a senha certa devolve token de 64 hex e validade futura', functi
         preg_match('/^[0-9a-f]{64}$/', (string) $res['body']['token']) === 1,
         'token deveria ser 64 caracteres hex'
     );
+
+    // A validade é medida com o relógio do BANCO, não com o do PHP. Nesta
+    // máquina os dois estão em fusos diferentes, e foi exatamente esse
+    // descompasso que fazia a sessão durar 17h em vez de 12h antes da correção.
+    // Comparar com time() do PHP testaria o fuso da máquina, não a regra.
+    $row = Connection::get()->query(
+        'SELECT TIMESTAMPDIFF(MINUTE, NOW(), expires_at) AS minutos FROM admin_sessions LIMIT 1'
+    )->fetch();
+    $minutos = (int) $row['minutos'];
     check(
-        strtotime($res['body']['expires_at']) > time() + 11 * 3600,
-        'validade deveria ser de aproximadamente 12 horas'
+        $minutos > 11 * 60 && $minutos <= 12 * 60,
+        'a sessao deveria durar aproximadamente 12h, veio ' . $minutos . ' minutos'
     );
 });
 
@@ -74,6 +83,12 @@ test('logout invalida o token', function () {
 
     $left = Connection::get()->query('SELECT COUNT(*) AS total FROM admin_sessions')->fetch();
     check_same(0, (int) $left['total'], 'sessao deveria ter sido apagada');
+});
+
+test('logout sem token devolve 401', function () {
+    reset_tables();
+    $res = http_call('POST', '/admin/logout', []);
+    check_same(401, $res['status'], 'status');
 });
 
 test('login limpa sessoes ja vencidas', function () {
