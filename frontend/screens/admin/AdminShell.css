@@ -1,5 +1,8 @@
 .admin-shell {
-  min-height: 100svh;
+  /* Altura fixa, não min-height: o conteúdo rola por dentro e a navegação
+     fica presa na borda. Sem isso a barra inferior do celular vira um
+     elemento no fim do fluxo e só aparece quando a pessoa já rolou tudo. */
+  height: 100svh;
   display: grid;
   grid-template-columns: var(--admin-sidebar) 1fr;
   grid-template-rows: var(--admin-topbar) 1fr;
@@ -106,7 +109,7 @@
 }
 
 .admin-shell__action {
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 9px;
   border: 1px solid var(--admin-line);
@@ -134,7 +137,7 @@
 .admin-shell__content {
   grid-area: content;
   padding: 20px;
-  overflow-x: auto;
+  overflow: auto;
 }
 
 /* No celular a sidebar vira barra inferior: mandar convite pelo WhatsApp é
