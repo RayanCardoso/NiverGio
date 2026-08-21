@@ -41,6 +41,9 @@ $router = new Router();
 $router->get('/rsvp', function () {
     (new RsvpController())->lookup();
 });
+$router->post('/rsvp', function () {
+    (new RsvpController())->confirm();
+});
 $router->post('/admin/login', function () {
     (new AdminAuthController())->login();
 });

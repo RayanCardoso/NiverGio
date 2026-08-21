@@ -7,6 +7,7 @@ use App\Http\Request;
 use App\Http\Response;
 use App\Support\Codes;
 use App\Support\RateLimiter;
+use Throwable;
 
 class RsvpController
 {
@@ -24,6 +25,76 @@ class RsvpController
             'found' => true,
             'code' => $code,
             'members' => $this->members($found['group_id']),
+        ]);
+    }
+
+    public function confirm()
+    {
+        $body = Request::json();
+        $code = trim((string) (isset($body['code']) ? $body['code'] : ''));
+        $responses = isset($body['responses']) && is_array($body['responses']) ? $body['responses'] : [];
+
+        $found = $this->findGroup($code);
+        if (!isset($found['group_id'])) {
+            Response::json($found['body'], $found['status']);
+            return;
+        }
+        $groupId = $found['group_id'];
+
+        if (!$responses) {
+            Response::json(['error' => 'Nenhuma resposta enviada.'], 400);
+            return;
+        }
+
+        $clean = [];
+        foreach ($responses as $response) {
+            $memberId = isset($response['id']) ? (int) $response['id'] : 0;
+            $status = isset($response['status']) ? (string) $response['status'] : '';
+
+            // Só 'yes' e 'no' entram: 'pending' é estado inicial, não resposta.
+            if ($memberId <= 0 || ($status !== 'yes' && $status !== 'no')) {
+                Response::json(['error' => 'Resposta inválida.'], 400);
+                return;
+            }
+
+            $clean[$memberId] = $status;
+        }
+
+        $pdo = Connection::get();
+
+        $stmt = $pdo->prepare('SELECT id FROM guest_members WHERE group_id = :id');
+        $stmt->execute(['id' => $groupId]);
+        $ownIds = array_map('intval', array_column($stmt->fetchAll(), 'id'));
+
+        // Conferir todos os ids ANTES de gravar qualquer um: assim um id de
+        // outra família não consegue nem alterar meio grupo antes de a
+        // requisição ser recusada. Ou grava tudo, ou não grava nada.
+        foreach (array_keys($clean) as $memberId) {
+            if (!in_array($memberId, $ownIds, true)) {
+                Response::json(['error' => 'Convidado não pertence a este grupo.'], 400);
+                return;
+            }
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $update = $pdo->prepare(
+                'UPDATE guest_members SET status = :status, responded_at = NOW()
+                 WHERE id = :id AND group_id = :group_id'
+            );
+            foreach ($clean as $memberId => $status) {
+                $update->execute(['status' => $status, 'id' => $memberId, 'group_id' => $groupId]);
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        Response::json([
+            'found' => true,
+            'code' => $code,
+            'members' => $this->members($groupId),
         ]);
     }
 
