@@ -7,17 +7,7 @@ use App\Http\Request;
 use App\Http\Response;
 use App\Http\Router;
 
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    if (strpos($class, $prefix) !== 0) {
-        return;
-    }
-    $relative = substr($class, strlen($prefix));
-    $file = __DIR__ . '/src/' . str_replace('\\', '/', $relative) . '.php';
-    if (file_exists($file)) {
-        require $file;
-    }
-});
+require __DIR__ . '/src/autoload.php';
 
 // A API só fala JSON: aviso ou stack trace impresso no corpo quebra o
 // res.json() do front e ainda vaza caminho de arquivo do servidor. Então erro
