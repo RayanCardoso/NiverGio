@@ -2,7 +2,7 @@
 
 use App\Config\Env;
 use App\Controllers\AdminAuthController;
-use App\Controllers\AdminController;
+use App\Controllers\GroupsController;
 use App\Controllers\RsvpController;
 use App\Http\Request;
 use App\Http\Response;
@@ -44,14 +44,17 @@ $router->get('/rsvp', function () {
 $router->post('/rsvp', function () {
     (new RsvpController())->save();
 });
-$router->post('/admin', function () {
-    (new AdminController())->list();
-});
 $router->post('/admin/login', function () {
     (new AdminAuthController())->login();
 });
 $router->post('/admin/logout', function () {
     (new AdminAuthController())->logout();
+});
+$router->get('/admin/groups', function () {
+    (new GroupsController())->index();
+});
+$router->post('/admin/groups/create', function () {
+    (new GroupsController())->create();
 });
 
 $route = isset($_GET['route']) ? '/' . trim($_GET['route'], '/') : '/';
