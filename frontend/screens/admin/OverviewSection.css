@@ -1,0 +1,92 @@
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 1000px;
+}
+
+.overview__heading {
+  margin: 0 0 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.overview__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--admin-gap);
+}
+
+.overview__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border: 1px solid var(--admin-line);
+  border-left: 3px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+}
+
+/* A borda colorida à esquerda carrega o significado; o número fica claro em
+   todos os cartões, para poder ser lido de relance sem o olho caçar cor. */
+.overview__stat--yes { border-left-color: var(--admin-yes); }
+.overview__stat--no { border-left-color: var(--admin-no); }
+.overview__stat--pending { border-left-color: var(--admin-pending); }
+
+.overview__stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview__stat-label {
+  font-size: 13px;
+  color: var(--admin-muted);
+}
+
+.overview__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--admin-gap);
+}
+
+.overview__action {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.overview__action:hover:not(:disabled) {
+  border-color: var(--admin-accent);
+}
+
+.overview__action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.overview__action-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--admin-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.overview__action-label {
+  font-size: 13px;
+  color: var(--admin-muted);
+}
