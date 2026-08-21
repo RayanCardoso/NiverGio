@@ -1,5 +1,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # Sem esta linha o mod_rewrite engole o header Authorization e o painel
+  # responde 401 em produção mesmo com token válido. O Request::bearerToken()
+  # lê tanto HTTP_AUTHORIZATION quanto a versão com prefixo REDIRECT_.
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
 </IfModule>

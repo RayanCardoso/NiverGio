@@ -1,6 +1,7 @@
 <?php
 
 use App\Config\Env;
+use App\Controllers\AdminAuthController;
 use App\Controllers\AdminController;
 use App\Controllers\RsvpController;
 use App\Http\Request;
@@ -45,6 +46,12 @@ $router->post('/rsvp', function () {
 });
 $router->post('/admin', function () {
     (new AdminController())->list();
+});
+$router->post('/admin/login', function () {
+    (new AdminAuthController())->login();
+});
+$router->post('/admin/logout', function () {
+    (new AdminAuthController())->logout();
 });
 
 $route = isset($_GET['route']) ? '/' . trim($_GET['route'], '/') : '/';
