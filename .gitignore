@@ -14,6 +14,11 @@ dist-ssr
 out
 *.local
 
+# Pacotes de publicação (api.zip, web.zip). Ficam de fora não só por serem
+# gerados: o zip do backend leva o .env junto, então commitar um deles põe a
+# senha do banco no histórico, driblando as regras de .env logo abaixo.
+*.zip
+
 # Credenciais (banco, senha do admin) — NUNCA commitar.
 # Regras sem barra valem em qualquer nível: cobrem src/backend/.env,
 # src/backend/.env.local e o .env.local da raiz, mesmo se as pastas mudarem.

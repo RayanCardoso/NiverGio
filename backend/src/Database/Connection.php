@@ -32,6 +32,10 @@ class Connection
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
         } catch (PDOException $e) {
+            // A mensagem do PDO diz qual é o problema (senha, banco inexistente,
+            // usuário sem acesso), mas cita credencial — fica só no log, nunca
+            // na resposta.
+            error_log('[nivergio-api] falha ao conectar: ' . $e->getMessage());
             Response::json(['error' => 'Falha ao conectar ao banco de dados.'], 500);
             exit;
         }

@@ -249,7 +249,15 @@ Diagnóstico dos erros mais comuns:
   funcionar, o problema é só a reescrita.
 - **500 com `Falha ao conectar ao banco de dados.`** — `.env` errado. Revise
   `DB_NAME`/`DB_USER` (com prefixo!), a senha, e se o usuário foi adicionado ao
-  banco com todos os privilégios.
+  banco com todos os privilégios. **Confira também se um `.env.local` foi parar
+  no servidor**: ele vence o `.env` e aponta pro banco da máquina de
+  desenvolvimento, que não existe lá — o sintoma é exatamente este 500.
+- **500 com `Erro interno no servidor.`** — a conexão abriu, mas a consulta
+  falhou. Quase sempre é o schema: tabela `rsvps` que nunca foi criada, ou
+  criada na versão antiga (sem a coluna `name`) — veja o `ALTER TABLE` no fim
+  do [`database/schema.sql`](database/schema.sql). O motivo exato fica no log
+  de erros da conta: cPanel → **Erros**, ou o arquivo `error_log` que aparece
+  na própria pasta `public_html/api/`. Procure pelas linhas `[nivergio-api]`.
 - **401 no painel com a senha certa** — `ADMIN_PASSWORD` no servidor é diferente
   do que você está digitando. Espaço sobrando no fim da linha do `.env` conta.
 
