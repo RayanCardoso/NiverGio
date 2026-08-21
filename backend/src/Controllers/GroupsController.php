@@ -124,6 +124,129 @@ class GroupsController
         Response::json(['ok' => true, 'id' => $groupId]);
     }
 
+    public function update()
+    {
+        AdminSession::guard();
+
+        $body = Request::json();
+        $groupId = isset($body['id']) ? (int) $body['id'] : 0;
+        $rawPhone = isset($body['phone']) ? $body['phone'] : '';
+        $responsible = self::cleanName(isset($body['responsible']) ? $body['responsible'] : '');
+        $phone = self::cleanPhone($rawPhone);
+
+        $companions = [];
+        $companionsInput = isset($body['companions']) && is_array($body['companions']) ? $body['companions'] : [];
+        foreach (array_values($companionsInput) as $index => $item) {
+            $raw = is_array($item) && isset($item['name']) ? $item['name'] : $item;
+            $name = trim((string) $raw);
+            if ($name === '') {
+                continue;
+            }
+            $companions[] = [
+                'id' => is_array($item) && isset($item['id']) ? (int) $item['id'] : 0,
+                'name' => $name,
+                'sort_order' => $index + 1,
+            ];
+        }
+
+        $names = array_map(function ($companion) {
+            return $companion['name'];
+        }, $companions);
+
+        $error = self::validate($responsible, $names, $phone, $rawPhone);
+        if ($error !== null) {
+            Response::json(['error' => $error], 400);
+            return;
+        }
+
+        $pdo = Connection::get();
+
+        $exists = $pdo->prepare('SELECT id FROM guest_groups WHERE id = :id LIMIT 1');
+        $exists->execute(['id' => $groupId]);
+        if (!$exists->fetch()) {
+            Response::json(['error' => 'Grupo não encontrado.'], 404);
+            return;
+        }
+
+        $current = $pdo->prepare('SELECT id FROM guest_members WHERE group_id = :id AND is_responsible = 0');
+        $current->execute(['id' => $groupId]);
+        $existingIds = array_map('intval', array_column($current->fetchAll(), 'id'));
+
+        // Todo id que o painel mandou tem de ser deste grupo. Conferir antes de
+        // abrir a transação é o que garante que um id de outra família não
+        // renomeie ninguém — nem por engano do painel, nem de propósito.
+        $keptIds = [];
+        foreach ($companions as $companion) {
+            if ($companion['id'] === 0) {
+                continue;
+            }
+            if (!in_array($companion['id'], $existingIds, true)) {
+                Response::json(['error' => 'Acompanhante não pertence a este grupo.'], 400);
+                return;
+            }
+            $keptIds[] = $companion['id'];
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE guest_groups SET phone = :phone WHERE id = :id')
+                ->execute(['phone' => $phone === '' ? null : $phone, 'id' => $groupId]);
+
+            // Renomeado no lugar, nunca recriado: recriar geraria um id novo e
+            // com ele perderia o status de quem já tinha respondido.
+            $pdo->prepare('UPDATE guest_members SET `name` = :name WHERE group_id = :id AND is_responsible = 1')
+                ->execute(['name' => $responsible, 'id' => $groupId]);
+
+            $toDelete = array_values(array_diff($existingIds, $keptIds));
+            if ($toDelete) {
+                // Placeholders montados um a um: mesmo sendo ids já validados e
+                // inteiros, nenhum valor entra no texto do SQL.
+                $placeholders = [];
+                $params = ['group_id' => $groupId];
+                foreach ($toDelete as $position => $memberId) {
+                    $placeholders[] = ':del' . $position;
+                    $params['del' . $position] = $memberId;
+                }
+                $sql = 'DELETE FROM guest_members WHERE group_id = :group_id AND id IN ('
+                    . implode(', ', $placeholders) . ')';
+                $pdo->prepare($sql)->execute($params);
+            }
+
+            $rename = $pdo->prepare(
+                'UPDATE guest_members SET `name` = :name, sort_order = :sort_order
+                 WHERE id = :id AND group_id = :group_id'
+            );
+            $insert = $pdo->prepare(
+                'INSERT INTO guest_members (group_id, `name`, is_responsible, sort_order)
+                 VALUES (:group_id, :name, 0, :sort_order)'
+            );
+
+            foreach ($companions as $companion) {
+                if ($companion['id'] !== 0) {
+                    $rename->execute([
+                        'name' => $companion['name'],
+                        'sort_order' => $companion['sort_order'],
+                        'id' => $companion['id'],
+                        'group_id' => $groupId,
+                    ]);
+                } else {
+                    $insert->execute([
+                        'group_id' => $groupId,
+                        'name' => $companion['name'],
+                        'sort_order' => $companion['sort_order'],
+                    ]);
+                }
+            }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        Response::json(['ok' => true]);
+    }
+
     protected static function cleanName($value)
     {
         return trim((string) $value);

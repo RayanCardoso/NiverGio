@@ -56,6 +56,9 @@ $router->get('/admin/groups', function () {
 $router->post('/admin/groups/create', function () {
     (new GroupsController())->create();
 });
+$router->post('/admin/groups/update', function () {
+    (new GroupsController())->update();
+});
 
 $route = isset($_GET['route']) ? '/' . trim($_GET['route'], '/') : '/';
 $router->dispatch(Request::method(), $route);
