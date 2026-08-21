@@ -1,0 +1,114 @@
+.guests {
+  max-width: 1200px;
+}
+
+.guests__toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.guests__search {
+  flex: 1 1 220px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 9px;
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font: inherit;
+}
+
+.guests__filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.guests__filter {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--admin-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.guests__filter.is-active {
+  background: var(--admin-accent-soft);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+.guests__export {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-line);
+  border-radius: 9px;
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.guests__export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.guests__error {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: var(--admin-radius);
+  background: rgba(224, 122, 143, 0.14);
+  color: var(--admin-no);
+  font-size: 14px;
+}
+
+.guests__note {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--admin-muted);
+}
+
+/* A tabela é larga de propósito; quem rola na horizontal é este contêiner, não
+   a página — barra horizontal no body deixa o painel desconfortável no celular. */
+.guests__table-wrap {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  overflow-x: auto;
+}
+
+.guests__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.guests__table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  white-space: nowrap;
+}
+
+.guests__num {
+  text-align: center;
+}
+
+.guests__empty {
+  padding: 22px 14px;
+  text-align: center;
+  color: var(--admin-muted);
+  font-size: 14px;
+}

@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { adminLogin, adminLogout, fetchGroups, getToken, SessionExpiredError } from '../api.js'
 import AdminShell from './admin/AdminShell.jsx'
+import GuestsSection from './admin/GuestsSection.jsx'
 import LoginCard from './admin/LoginCard.jsx'
 import OverviewSection from './admin/OverviewSection.jsx'
 import './AdminPage.css'
 
 // O menu cresce junto com as seções: item que não leva a lugar nenhum é o que
 // faz uma sidebar parecer enfeite.
-const SECTIONS = [{ id: 'overview', label: 'Visão geral' }]
+const SECTIONS = [
+  { id: 'overview', label: 'Visão geral' },
+  { id: 'guests', label: 'Convidados' },
+]
 
 const TITLES = {
   overview: 'Visão geral',
+  guests: 'Convidados',
 }
 
 function AdminPage() {
@@ -20,6 +25,7 @@ function AdminPage() {
   const [section, setSection] = useState('overview')
   const [refreshing, setRefreshing] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [filter, setFilter] = useState('todos')
 
   const load = useCallback(async () => {
     setRefreshing(true)
@@ -74,7 +80,27 @@ function AdminPage() {
       onLogout={handleLogout}
     >
       {errorMessage && <p className="admin-page__error">{errorMessage}</p>}
-      {section === 'overview' && <OverviewSection groups={groups} onFilter={() => setSection('overview')} />}
+
+      {section === 'overview' && (
+        <OverviewSection
+          groups={groups}
+          onFilter={(status) => {
+            // O bloco "precisa da sua ação" leva para a lista já filtrada: é o
+            // caminho que o organizador percorre toda vez que abre o painel.
+            setFilter(status)
+            setSection('guests')
+          }}
+        />
+      )}
+
+      {section === 'guests' && (
+        <GuestsSection
+          groups={groups}
+          filter={filter}
+          onFilterChange={setFilter}
+          onReload={load}
+        />
+      )}
     </AdminShell>
   )
 }
