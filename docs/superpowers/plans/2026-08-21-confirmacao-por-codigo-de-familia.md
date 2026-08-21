@@ -85,10 +85,18 @@ O backend ganha um runner próprio (Task 1): testes de integração que batem no
 "C:/xampp/php/php.exe" backend/tests/run.php
 ```
 
-Com filtro por assunto (casa com parte do nome do teste):
+> ⚠️ **Correção aplicada durante a execução:** o argumento de filtro casa com a
+> **descrição** de cada teste, não com o nome do arquivo — então `run.php auth`
+> casa com zero testes e imprime `0 passaram, 0 falharam`, que *parece* verde.
+> Ignore os comandos com filtro que aparecem nos passos das tasks abaixo: rode
+> sempre a suíte inteira, sem argumento. Os totais cumulativos esperados são
+> T1→1, T2→5, T3→9, T4→17, T5→25, T6→33, T7→38, T8→47, T9→56.
+
+O filtro existe para depuração pontual, e casa com parte da **descrição** do
+teste (não do arquivo):
 
 ```bash
-"C:/xampp/php/php.exe" backend/tests/run.php codigo
+"C:/xampp/php/php.exe" backend/tests/run.php "codigo curto"
 ```
 
 O frontend **não tem** runner de testes e não vai ganhar um: verificação é `npm run lint`, `npm run build` e observação no navegador, com o resultado esperado escrito em cada passo.
