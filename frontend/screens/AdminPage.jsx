@@ -4,6 +4,7 @@ import AdminShell from './admin/AdminShell.jsx'
 import GuestsSection from './admin/GuestsSection.jsx'
 import LoginCard from './admin/LoginCard.jsx'
 import OverviewSection from './admin/OverviewSection.jsx'
+import SendsSection from './admin/SendsSection.jsx'
 import './AdminPage.css'
 
 // O menu cresce junto com as seções: item que não leva a lugar nenhum é o que
@@ -11,11 +12,13 @@ import './AdminPage.css'
 const SECTIONS = [
   { id: 'overview', label: 'Visão geral' },
   { id: 'guests', label: 'Convidados' },
+  { id: 'sends', label: 'Envios' },
 ]
 
 const TITLES = {
   overview: 'Visão geral',
   guests: 'Convidados',
+  sends: 'Envios',
 }
 
 function AdminPage() {
@@ -101,6 +104,8 @@ function AdminPage() {
           onReload={load}
         />
       )}
+
+      {section === 'sends' && <SendsSection groups={groups} onReload={load} />}
     </AdminShell>
   )
 }
