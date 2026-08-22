@@ -40,3 +40,23 @@ export const GIFT_SUGGESTIONS = [
 
 // Chave PIX exibida na página de presentes.
 export const PIX_KEY = '21965397036'
+
+// Domínio público do convite, sem barra no fim. É daqui que sai o link exclusivo
+// de cada família no painel — em produção precisa ser o domínio real, senão os
+// convites saem apontando para lugar nenhum.
+// TODO: troque pelo domínio real antes de publicar.
+export const SITE_URL = 'https://SEU-DOMINIO.com'
+
+// Mensagem copiada no painel para mandar no WhatsApp. Os campos entre chaves são
+// preenchidos por grupo: {nome} é o responsável e {link} é o link exclusivo dele.
+export const INVITE_MESSAGE = `Oi, {nome}! 💛
+
+Você e sua família estão convidados para o meu aniversário!
+
+📅 {data} às {hora}
+👗 Traje: {traje}
+
+Confirme a presença de cada pessoa do seu grupo por aqui:
+{link}
+
+Esse link é só da sua família — não precisa de senha nem de código. 💛`

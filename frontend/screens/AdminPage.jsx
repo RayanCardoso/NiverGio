@@ -1,248 +1,130 @@
-import { useMemo, useState } from 'react'
-import Sparkles from '../components/Sparkles.jsx'
-import { fetchAdminRsvps } from '../api.js'
+import { useCallback, useEffect, useState } from 'react'
+import { adminLogin, adminLogout, fetchGroups, getToken, SessionExpiredError } from '../api.js'
+import AdminShell from './admin/AdminShell.jsx'
+import GuestsSection from './admin/GuestsSection.jsx'
+import LoginCard from './admin/LoginCard.jsx'
+import OverviewSection from './admin/OverviewSection.jsx'
+import SendsSection from './admin/SendsSection.jsx'
 import './AdminPage.css'
 
-// O MySQL devolve "2026-08-20 17:07:39". Formatar na mão evita o new Date()
-// com string sem timezone, que nem todo navegador interpreta igual.
-function formatDateTime(value) {
-  if (!value) return '—'
-  const [date, time = ''] = String(value).split(' ')
-  const [year, month, day] = date.split('-')
-  if (!year || !month || !day) return value
-  return time ? `${day}/${month}/${year} ${time.slice(0, 5)}` : `${day}/${month}/${year}`
-}
+// O menu cresce junto com as seções: item que não leva a lugar nenhum é o que
+// faz uma sidebar parecer enfeite.
+const SECTIONS = [
+  { id: 'overview', label: 'Visão geral' },
+  { id: 'guests', label: 'Convidados' },
+  { id: 'sends', label: 'Envios' },
+]
 
-function csvCell(value) {
-  return `"${String(value).replace(/"/g, '""')}"`
+const TITLES = {
+  overview: 'Visão geral',
+  guests: 'Convidados',
+  sends: 'Envios',
 }
 
 function AdminPage() {
-  const [password, setPassword] = useState('')
-  const [status, setStatus] = useState('idle') // 'idle' | 'loading' | 'error'
+  const [authed, setAuthed] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [groups, setGroups] = useState([])
+  const [section, setSection] = useState('overview')
+  const [refreshing, setRefreshing] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [rsvps, setRsvps] = useState(null)
-  const [search, setSearch] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [filter, setFilter] = useState('todos')
 
-  const load = async (adminPassword) => {
-    setStatus('loading')
+  const load = useCallback(async () => {
+    setRefreshing(true)
     setErrorMessage('')
     try {
-      const data = await fetchAdminRsvps({ password: adminPassword })
-      setRsvps(data.rsvps)
-      setStatus('idle')
+      const data = await fetchGroups()
+      setGroups(data.groups)
+      setAuthed(true)
+      setNotice('')
     } catch (err) {
-      setStatus('error')
-      setErrorMessage(err.message)
+      if (err instanceof SessionExpiredError) {
+        setAuthed(false)
+        setNotice(err.message)
+      } else {
+        setErrorMessage(err.message)
+      }
+    } finally {
+      setRefreshing(false)
+    }
+  }, [])
+
+  // O token vive no sessionStorage, então um F5 não deve pedir a senha de novo —
+  // mas quem decide se ele ainda vale é o servidor, não o navegador.
+  useEffect(() => {
+    if (getToken()) load()
+  }, [load])
+
+  const handleLogin = async (password) => {
+    await adminLogin({ password })
+    await load()
+  }
+
+  const handleLogout = async () => {
+    // O token já sai do navegador dentro do adminLogout (finally). Aqui o
+    // finally é o que garante que a TELA volte ao login mesmo se a chamada
+    // falhar: sem ele, um 401 no próprio logout deixaria o dashboard aberto,
+    // com nomes e telefones, para quem achou que tinha saído.
+    try {
+      await adminLogout()
+    } finally {
+      setAuthed(false)
+      setGroups([])
+      setNotice('')
     }
   }
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    load(password)
-  }
+  // Ponto único: qualquer escrita que receber 401 (o token já foi apagado
+  // pelo api.js) cai aqui em vez de virar texto vermelho numa seção — o
+  // organizador não fica num painel morto, ele volta para o login.
+  const handleSessionExpired = useCallback((message) => {
+    setAuthed(false)
+    setNotice(message || 'Sessão expirada. Entre de novo.')
+  }, [])
 
-  // Quem confirmou conta como convidado, por isso o +1 em cada grupo.
-  const stats = useMemo(() => {
-    const list = rsvps || []
-    const companions = list.reduce((sum, r) => sum + r.companions.length, 0)
-    return {
-      people: list.length + companions,
-      groups: list.length,
-      companions,
-      alone: list.filter((r) => r.companions.length === 0).length,
-    }
-  }, [rsvps])
-
-  const filtered = useMemo(() => {
-    const list = rsvps || []
-    const term = search.trim().toLowerCase()
-    if (!term) return list
-    return list.filter((rsvp) =>
-      [rsvp.name, rsvp.email, ...rsvp.companions].join(' ').toLowerCase().includes(term),
-    )
-  }, [rsvps, search])
-
-  const handleCopyEmails = () => {
-    navigator.clipboard
-      .writeText(filtered.map((rsvp) => rsvp.email).join(', '))
-      .then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      })
-      .catch(() => {})
-  }
-
-  const handleExportCsv = () => {
-    const header = [
-      'Responsavel',
-      'Email',
-      'Acompanhantes',
-      'N de acompanhantes',
-      'Total do grupo',
-      'Confirmado em',
-      'Atualizado em',
-    ]
-    const rows = filtered.map((rsvp) => [
-      rsvp.name,
-      rsvp.email,
-      rsvp.companions.join(', '),
-      rsvp.companions.length,
-      rsvp.companions.length + 1,
-      formatDateTime(rsvp.created_at),
-      formatDateTime(rsvp.updated_at),
-    ])
-    // BOM + ponto e vírgula: é assim que o Excel em pt-BR abre com acento certo.
-    const csv = '﻿' + [header, ...rows].map((row) => row.map(csvCell).join(';')).join('\r\n')
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'confirmacoes.csv'
-    link.click()
-    URL.revokeObjectURL(url)
+  if (!authed) {
+    return <LoginCard onSubmit={handleLogin} notice={notice} />
   }
 
   return (
-    <div className="admin-page">
-      <Sparkles />
+    <AdminShell
+      section={section}
+      sections={SECTIONS}
+      title={TITLES[section]}
+      onSection={setSection}
+      onRefresh={load}
+      refreshing={refreshing}
+      onLogout={handleLogout}
+    >
+      {errorMessage && <p className="admin-page__error">{errorMessage}</p>}
 
-      <div className="admin-page__content">
-        <h1 className="admin-page__title">Confirmações</h1>
+      {section === 'overview' && (
+        <OverviewSection
+          groups={groups}
+          onFilter={(status) => {
+            // O bloco "precisa da sua ação" leva para a lista já filtrada: é o
+            // caminho que o organizador percorre toda vez que abre o painel.
+            setFilter(status)
+            setSection('guests')
+          }}
+        />
+      )}
 
-        {!rsvps && (
-          <form className="admin-page__card" onSubmit={handleSubmit}>
-            <label className="admin-page__label" htmlFor="admin-password">
-              Senha
-            </label>
-            <input
-              id="admin-password"
-              type="password"
-              className="admin-page__input"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="off"
-              required
-            />
-            {status === 'error' && <p className="admin-page__error">{errorMessage}</p>}
-            <button type="submit" className="admin-page__submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Entrando…' : 'Entrar'}
-            </button>
-          </form>
-        )}
+      {section === 'guests' && (
+        <GuestsSection
+          groups={groups}
+          filter={filter}
+          onFilterChange={setFilter}
+          onReload={load}
+          onSessionExpired={handleSessionExpired}
+        />
+      )}
 
-        {rsvps && (
-          <>
-            <div className="admin-page__stats">
-              <div className="admin-page__stat admin-page__stat--highlight">
-                <span className="admin-page__stat-value">{stats.people}</span>
-                <span className="admin-page__stat-label">pessoas no total</span>
-              </div>
-              <div className="admin-page__stat">
-                <span className="admin-page__stat-value">{stats.groups}</span>
-                <span className="admin-page__stat-label">
-                  {stats.groups === 1 ? 'confirmação' : 'confirmações'}
-                </span>
-              </div>
-              <div className="admin-page__stat">
-                <span className="admin-page__stat-value">{stats.companions}</span>
-                <span className="admin-page__stat-label">acompanhantes</span>
-              </div>
-              <div className="admin-page__stat">
-                <span className="admin-page__stat-value">{stats.alone}</span>
-                <span className="admin-page__stat-label">vêm sozinhos</span>
-              </div>
-            </div>
-
-            <div className="admin-page__toolbar">
-              <input
-                className="admin-page__input admin-page__search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por nome ou email…"
-                autoComplete="off"
-              />
-              <button type="button" className="admin-page__action" onClick={() => load(password)}>
-                {status === 'loading' ? 'Atualizando…' : 'Atualizar'}
-              </button>
-              <button
-                type="button"
-                className="admin-page__action"
-                onClick={handleCopyEmails}
-                disabled={filtered.length === 0}
-              >
-                {copied ? 'Copiado! ✓' : 'Copiar emails'}
-              </button>
-              <button
-                type="button"
-                className="admin-page__action"
-                onClick={handleExportCsv}
-                disabled={filtered.length === 0}
-              >
-                Exportar CSV
-              </button>
-            </div>
-
-            {status === 'error' && <p className="admin-page__error">{errorMessage}</p>}
-
-            {search && (
-              <p className="admin-page__filter-note">
-                Mostrando {filtered.length} de {rsvps.length} · copiar e exportar valem só para o
-                que está filtrado.
-              </p>
-            )}
-
-            <div className="admin-page__table-wrap">
-              <table className="admin-page__table">
-                <thead>
-                  <tr>
-                    <th>Responsável</th>
-                    <th>Email</th>
-                    <th>Acompanhantes</th>
-                    <th className="admin-page__num">Nº</th>
-                    <th className="admin-page__num">Grupo</th>
-                    <th>Atualizado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((rsvp) => (
-                    <tr key={rsvp.email}>
-                      <td className="admin-page__cell-name">{rsvp.name}</td>
-                      <td className="admin-page__cell-email">{rsvp.email}</td>
-                      <td>
-                        {rsvp.companions.length > 0 ? (
-                          rsvp.companions.join(', ')
-                        ) : (
-                          <span className="admin-page__muted">—</span>
-                        )}
-                      </td>
-                      <td className="admin-page__num">{rsvp.companions.length}</td>
-                      <td className="admin-page__num admin-page__cell-total">
-                        {rsvp.companions.length + 1}
-                      </td>
-                      <td className="admin-page__cell-date">{formatDateTime(rsvp.updated_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {filtered.length === 0 && (
-                <p className="admin-page__empty">
-                  {rsvps.length === 0
-                    ? 'Nenhuma confirmação ainda.'
-                    : 'Nenhum resultado para essa busca.'}
-                </p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* /confirmacao e não /, senão o organizador cai no vídeo de abertura. */}
-        <a className="admin-page__back" href="/confirmacao/">
-          ← Voltar ao convite
-        </a>
-      </div>
-    </div>
+      {section === 'sends' && (
+        <SendsSection groups={groups} onReload={load} onSessionExpired={handleSessionExpired} />
+      )}
+    </AdminShell>
   )
 }
 

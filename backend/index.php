@@ -1,23 +1,14 @@
 <?php
 
 use App\Config\Env;
-use App\Controllers\AdminController;
+use App\Controllers\AdminAuthController;
+use App\Controllers\GroupsController;
 use App\Controllers\RsvpController;
 use App\Http\Request;
 use App\Http\Response;
 use App\Http\Router;
 
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    if (strpos($class, $prefix) !== 0) {
-        return;
-    }
-    $relative = substr($class, strlen($prefix));
-    $file = __DIR__ . '/src/' . str_replace('\\', '/', $relative) . '.php';
-    if (file_exists($file)) {
-        require $file;
-    }
-});
+require __DIR__ . '/src/autoload.php';
 
 // A API só fala JSON: aviso ou stack trace impresso no corpo quebra o
 // res.json() do front e ainda vaza caminho de arquivo do servidor. Então erro
@@ -51,10 +42,28 @@ $router->get('/rsvp', function () {
     (new RsvpController())->lookup();
 });
 $router->post('/rsvp', function () {
-    (new RsvpController())->save();
+    (new RsvpController())->confirm();
 });
-$router->post('/admin', function () {
-    (new AdminController())->list();
+$router->post('/admin/login', function () {
+    (new AdminAuthController())->login();
+});
+$router->post('/admin/logout', function () {
+    (new AdminAuthController())->logout();
+});
+$router->get('/admin/groups', function () {
+    (new GroupsController())->index();
+});
+$router->post('/admin/groups/create', function () {
+    (new GroupsController())->create();
+});
+$router->post('/admin/groups/update', function () {
+    (new GroupsController())->update();
+});
+$router->post('/admin/groups/delete', function () {
+    (new GroupsController())->destroy();
+});
+$router->post('/admin/groups/message-sent', function () {
+    (new GroupsController())->markMessageSent();
 });
 
 $route = isset($_GET['route']) ? '/' . trim($_GET['route'], '/') : '/';

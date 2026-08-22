@@ -6,9 +6,11 @@
 // serve o backend PHP no mesmo domínio.
 const isDev = process.env.NODE_ENV === 'development'
 
-// Padrão: o backend PHP rodando no Apache do XAMPP local. Pra apontar pra API
-// já publicada, mude API_PROXY_TARGET no frontend/.env.local.
-const apiTarget = process.env.API_PROXY_TARGET || 'http://localhost/nivergio-api'
+// Padrão: o backend PHP rodando no Apache do XAMPP local — a API responde em
+// /nivergio-api/backend/, a raiz do virtual host serve o repositório inteiro.
+// Pra apontar pra API já publicada, mude API_PROXY_TARGET no
+// frontend/.env.local.
+const apiTarget = process.env.API_PROXY_TARGET || 'http://localhost/nivergio-api/backend'
 
 const nextConfig = {
   output: 'export',

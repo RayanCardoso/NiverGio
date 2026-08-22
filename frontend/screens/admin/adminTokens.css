@@ -1,0 +1,35 @@
+/* Tokens do painel, presos ao escopo .admin para não vazarem nas telas do
+   convidado, que seguem com a paleta clara do index.css.
+
+   O painel é ferramenta e não convite: fundo escuro, densidade alta e números
+   legíveis de relance. O roxo e o dourado do tema entram nos acentos — é o que
+   faz este painel parecer o desta festa, e não um dashboard qualquer. */
+.admin {
+  --admin-bg: #171326;
+  --admin-surface: #1f1a33;
+  --admin-surface-2: #272040;
+  --admin-line: #362c55;
+  --admin-text: #ece7f6;
+  --admin-muted: #a99fc4;
+
+  --admin-accent: #f0c454;          /* var(--gold) do tema */
+  --admin-accent-soft: rgba(240, 196, 84, 0.14);
+  --admin-purple: #8a63ad;          /* var(--purple-light) do tema */
+
+  --admin-yes: #5fc9a0;
+  --admin-no: #e07a8f;
+  --admin-pending: #9a90b8;
+
+  --admin-radius: 12px;
+  --admin-gap: 16px;
+  --admin-sidebar: 232px;
+  --admin-topbar: 60px;
+  --admin-bottombar: 64px;
+
+  --admin-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--sans);
+  font-size: 15px;
+}

@@ -1,0 +1,194 @@
+.admin-shell {
+  /* Altura fixa, não min-height: o conteúdo rola por dentro e a navegação
+     fica presa na borda. Sem isso a barra inferior do celular vira um
+     elemento no fim do fluxo e só aparece quando a pessoa já rolou tudo. */
+  height: 100svh;
+  display: grid;
+  grid-template-columns: var(--admin-sidebar) 1fr;
+  grid-template-rows: var(--admin-topbar) 1fr;
+  grid-template-areas:
+    'nav top'
+    'nav content';
+}
+
+.admin-shell__nav {
+  grid-area: nav;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 12px;
+  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-line);
+}
+
+.admin-shell__brand {
+  padding: 0 10px 14px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.admin-shell__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-shell__link {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--admin-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-shell__link:hover {
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+}
+
+/* O dourado marca a seção atual e nada mais na navegação — é o único ponto de
+   cor forte, então não compete com os números do conteúdo. */
+.admin-shell__link.is-active {
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.admin-shell__icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.admin-shell__see-invite {
+  margin-top: auto;
+  padding: 10px;
+  font-size: 13px;
+  color: var(--admin-muted);
+  text-decoration: none;
+}
+
+.admin-shell__see-invite:hover {
+  color: var(--admin-text);
+}
+
+.admin-shell__top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-shell__title {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-shell__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-shell__action {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid var(--admin-line);
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-shell__action:hover:not(:disabled) {
+  border-color: var(--admin-purple);
+}
+
+.admin-shell__action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.admin-shell__action--ghost {
+  background: transparent;
+  color: var(--admin-muted);
+}
+
+.admin-shell__content {
+  grid-area: content;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* No celular a sidebar vira barra inferior: mandar convite pelo WhatsApp é
+   tarefa de telefone, e um menu escondido atrás de hambúrguer atrapalharia
+   justamente a seção que mais se usa com o polegar. */
+@media (max-width: 767px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--admin-topbar) 1fr auto;
+    grid-template-areas:
+      'top'
+      'content'
+      'nav';
+  }
+
+  .admin-shell__nav {
+    position: sticky;
+    bottom: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: 6px;
+    min-height: var(--admin-bottombar);
+    border-right: 0;
+    border-top: 1px solid var(--admin-line);
+  }
+
+  .admin-shell__brand,
+  .admin-shell__see-invite {
+    display: none;
+  }
+
+  .admin-shell__list {
+    flex: 1;
+    flex-direction: row;
+  }
+
+  .admin-shell__list li {
+    flex: 1;
+  }
+
+  .admin-shell__link {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 52px;
+    justify-content: center;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .admin-shell__content {
+    padding: 14px;
+  }
+}

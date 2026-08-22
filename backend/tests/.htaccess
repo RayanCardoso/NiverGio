@@ -1,0 +1,2 @@
+# A pasta de testes nunca é servida por HTTP — nem local nem em produção.
+Require all denied
