@@ -192,8 +192,11 @@ ADMIN_PASSWORD=a senha que abre o painel /admin
 - **`DB_PORT`** não entra aqui — na HostGator o padrão 3306 já vale. Ele existe
   só por causa do ambiente local.
 - **`ADMIN_PASSWORD`** não tem relação com o cPanel nem com o banco. É só a senha
-  da tela `/admin`, e você escolhe qual é. Ela é comparada com `hash_equals` e
-  enviada a cada requisição (não existe sessão).
+  da tela `/admin`, e você escolhe qual é. Ela é comparada com `hash_equals`,
+  mas só uma vez, no login: a senha é trocada por um token de sessão com
+  validade de 12h, que viaja no header `Authorization` em cada requisição
+  seguinte. O banco guarda só o SHA-256 do token, nunca a senha nem o token em
+  claro.
 
 O `.env` não está no git e nunca deve estar — crie ele direto no servidor, ou
 envie à mão.

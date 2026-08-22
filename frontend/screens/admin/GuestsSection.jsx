@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { createGroup, deleteGroup, setMessageSent, updateGroup } from '../../api.js'
+import { createGroup, deleteGroup, SessionExpiredError, setMessageSent, updateGroup } from '../../api.js'
 import GroupForm from './GroupForm.jsx'
 import GroupRow from './GroupRow.jsx'
 import { GROUP_STATUS, GROUP_STATUS_LABEL, groupStatus, responsibleName } from './groupStats.js'
@@ -20,7 +20,7 @@ function csvCell(value) {
   return `"${String(value).replace(/"/g, '""')}"`
 }
 
-function GuestsSection({ groups, filter, onFilterChange, onReload }) {
+function GuestsSection({ groups, filter, onFilterChange, onReload, onSessionExpired }) {
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState(null)
   const [expandedId, setExpandedId] = useState(0)
@@ -42,6 +42,14 @@ function GuestsSection({ groups, filter, onFilterChange, onReload }) {
       await action()
       await onReload()
     } catch (err) {
+      // Sessão caiu: o token já foi apagado pelo api.js. Não renderiza texto
+      // vermelho aqui (nem deixa a exceção chegar ao GroupForm, que também
+      // mostra erro) — devolve o organizador para o login, painel morto é
+      // pior do que uma tela de login inesperada.
+      if (err instanceof SessionExpiredError) {
+        onSessionExpired(err.message)
+        return
+      }
       setErrorMessage(err.message)
       throw err
     }
@@ -75,7 +83,6 @@ function GuestsSection({ groups, filter, onFilterChange, onReload }) {
   const handleExportCsv = () => {
     const header = [
       'Responsavel',
-      'Codigo curto',
       'Telefone',
       'Pessoa',
       'E responsavel',
@@ -84,16 +91,16 @@ function GuestsSection({ groups, filter, onFilterChange, onReload }) {
       'Convite enviado em',
     ]
 
-    // Uma linha por pessoa: é assim que dá para somar e filtrar no Excel. E sem
-    // o GUID de propósito — planilha circula por email e grupo, e quem tem o
-    // GUID confirma presença pela família.
+    // Uma linha por pessoa: é assim que dá para somar e filtrar no Excel. Sem
+    // o GUID nem o código curto de propósito — planilha circula por email e
+    // grupo, e quem tem qualquer um dos dois confirma presença pela família
+    // (o código curto resolve o grupo e escreve nele tanto quanto o GUID).
     const rows = []
     filtered.forEach((group) => {
       const head = responsibleName(group)
       group.members.forEach((member) => {
         rows.push([
           head,
-          group.short_code,
           formatPhone(group.phone),
           member.name,
           member.is_responsible ? 'sim' : 'nao',

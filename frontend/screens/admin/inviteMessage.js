@@ -6,6 +6,14 @@ import {
   DRESS_CODE,
 } from '../../config.js'
 
+// O SITE_URL nasce com um placeholder. Se ele for para produção assim, todo
+// convite sai com link quebrado e ainda entrega o GUID de cada família a um
+// domínio que não é nosso — e o estrago só aparece depois de as mensagens
+// terem sido enviadas. Por isso a tela bloqueia em vez de só avisar.
+export function siteUrlPendente() {
+  return SITE_URL.includes('SEU-DOMINIO')
+}
+
 // O link cai na raiz, não em /confirmacao: assim a família vê o vídeo de
 // abertura, e o "?c=" atravessa a troca de rota junto.
 export function inviteLink(guid) {

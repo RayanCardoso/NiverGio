@@ -62,11 +62,26 @@ function AdminPage() {
   }
 
   const handleLogout = async () => {
-    await adminLogout()
-    setAuthed(false)
-    setGroups([])
-    setNotice('')
+    // O token já sai do navegador dentro do adminLogout (finally). Aqui o
+    // finally é o que garante que a TELA volte ao login mesmo se a chamada
+    // falhar: sem ele, um 401 no próprio logout deixaria o dashboard aberto,
+    // com nomes e telefones, para quem achou que tinha saído.
+    try {
+      await adminLogout()
+    } finally {
+      setAuthed(false)
+      setGroups([])
+      setNotice('')
+    }
   }
+
+  // Ponto único: qualquer escrita que receber 401 (o token já foi apagado
+  // pelo api.js) cai aqui em vez de virar texto vermelho numa seção — o
+  // organizador não fica num painel morto, ele volta para o login.
+  const handleSessionExpired = useCallback((message) => {
+    setAuthed(false)
+    setNotice(message || 'Sessão expirada. Entre de novo.')
+  }, [])
 
   if (!authed) {
     return <LoginCard onSubmit={handleLogin} notice={notice} />
@@ -102,10 +117,13 @@ function AdminPage() {
           filter={filter}
           onFilterChange={setFilter}
           onReload={load}
+          onSessionExpired={handleSessionExpired}
         />
       )}
 
-      {section === 'sends' && <SendsSection groups={groups} onReload={load} />}
+      {section === 'sends' && (
+        <SendsSection groups={groups} onReload={load} onSessionExpired={handleSessionExpired} />
+      )}
     </AdminShell>
   )
 }

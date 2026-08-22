@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import { setMessageSent } from '../../api.js'
+import { SessionExpiredError, setMessageSent } from '../../api.js'
 import InviteActions from './InviteActions.jsx'
 import { GROUP_STATUS, groupScore, groupStatus, responsibleName } from './groupStats.js'
 import { formatDateTime, formatPhone } from './format.js'
 import './SendsSection.css'
 
-function SendsSection({ groups, onReload }) {
+function SendsSection({ groups, onReload, onSessionExpired }) {
   const [hideSent, setHideSent] = useState(true)
   const [busyId, setBusyId] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
@@ -25,6 +25,13 @@ function SendsSection({ groups, onReload }) {
       await setMessageSent({ id: group.id, sent })
       await onReload()
     } catch (err) {
+      // Mesma regra do GuestsSection: sessão caiu vira "volta ao login", não
+      // texto vermelho — o token já foi apagado, insistir aqui deixa o
+      // painel morto.
+      if (err instanceof SessionExpiredError) {
+        onSessionExpired(err.message)
+        return
+      }
       setErrorMessage(err.message)
     } finally {
       setBusyId(0)
