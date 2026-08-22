@@ -39,6 +39,12 @@ function OverviewSection({ groups, onFilter }) {
       <section className="overview__block">
         <h2 className="overview__heading">Precisa da sua ação</h2>
         <div className="overview__actions">
+          {/* "sem contato" e não "sem convite enviado": este número conta quem
+              não recebeu convite E ainda não respondeu. A seção Envios conta
+              cru quem não foi marcado como enviado, então os dois números
+              divergem de propósito para quem respondeu sem o organizador ter
+              marcado o check. Rótulos parecidos com contas diferentes fariam o
+              painel se contradizer. */}
           <button
             type="button"
             className="overview__action"
@@ -47,7 +53,7 @@ function OverviewSection({ groups, onFilter }) {
           >
             <span className="overview__action-value">{stats.notSent}</span>
             <span className="overview__action-label">
-              {stats.notSent === 1 ? 'grupo sem convite enviado' : 'grupos sem convite enviado'}
+              {stats.notSent === 1 ? 'grupo ainda sem contato' : 'grupos ainda sem contato'}
             </span>
           </button>
 
