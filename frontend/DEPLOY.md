@@ -25,16 +25,18 @@ cd frontend && npm install
 ## 2. Apontar o proxy para a API
 
 O front chama `/api/*`, e em desenvolvimento quem atende isso é o `rewrites()` do
-[`next.config.js`](next.config.js), que encaminha para o backend. O padrão já é o
-Apache local (`http://localhost/nivergio-api`), então **se você seguiu o
-[guia do backend](../backend/DEPLOY.md#rodar-localmente) não precisa configurar
-nada**.
+[`next.config.js`](next.config.js), que encaminha para o backend.
 
-Para apontar para outro lugar, crie um `.env.local` nesta pasta:
+Crie `frontend/.env.local` com o alvo do proxy de dev:
 
 ```
-API_PROXY_TARGET=http://localhost/nivergio-api
+API_PROXY_TARGET=http://localhost/nivergio-api/backend
 ```
+
+O repositório fica dentro do `htdocs`, então a raiz `/nivergio-api/` serve o
+repositório inteiro — é o `/backend` no fim do caminho que aponta para a API de
+verdade. Veja [o guia do backend](../backend/DEPLOY.md#rodar-localmente) para
+como esse caminho responde.
 
 Esse proxy é o motivo de não haver problema de CORS: quem chama a API é o
 servidor do Next, não o navegador, então tudo é mesma origem do ponto de vista da
@@ -74,7 +76,7 @@ npm run lint      # oxlint
 
 | Sintoma | Causa provável |
 |---|---|
-| `Erro ao comunicar com o servidor` na confirmação | backend desligado — Apache parado ou junction ausente |
+| `Erro ao comunicar com o servidor` na confirmação | backend desligado — Apache ou MySQL parados |
 | A porta 3000 já está em uso | outra instância do `npm run dev` aberta |
 | Vídeo não aparece | falta `public/video.mp4` (a tela avisa e deixa pular) |
 | Mudou o `.env.local` e nada mudou | o Next só lê na subida; reinicie o `npm run dev` |
@@ -89,6 +91,11 @@ npm run lint      # oxlint
 Data, hora, traje, chave PIX e sugestões de presente ficam em
 [`config.js`](config.js). Isso é conteúdo, não código — revise antes de gerar o
 build.
+
+Antes de publicar, abra `frontend/config.js` e troque `SITE_URL` pelo domínio
+real (sem barra no fim). É dele que sai o link exclusivo de cada família na
+mensagem do WhatsApp — deixando o valor de exemplo, todos os convites saem
+apontando para lugar nenhum.
 
 Os arquivos de mídia (`video.mp4`, `imagem-principal.png`) ficam em
 [`public/`](public) e entram no build automaticamente.
@@ -129,7 +136,8 @@ que não roda em produção.
 
 - `https://SEU-DOMINIO.com` → o convite abre no vídeo.
 - `https://SEU-DOMINIO.com/admin/` → tela de senha do painel.
-- Confirmar uma presença de teste e ver se ela aparece no painel. Se der erro de
+- Cadastrar um grupo de teste no painel, abrir o link dele e confirmar as
+  pessoas, e ver se o resultado aparece de volta no painel. Se der erro de
   comunicação, o problema está no backend, não aqui.
 
 O `trailingSlash: true` do [`next.config.js`](next.config.js) existe por causa

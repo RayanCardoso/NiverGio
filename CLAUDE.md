@@ -31,9 +31,10 @@ npm run preview   # serve the exported build (npx serve out)
 npm run lint      # oxlint (rules in frontend/.oxlintrc.json)
 ```
 
-There is no test suite. PHP is only available through the local XAMPP install, so
-backend changes are verified by hitting the endpoints (see README) rather than by
-unit tests.
+The frontend has no test suite. The backend does — see `tests/` under
+[Backend](#backend-backend) below — since PHP is only available through the
+local XAMPP install and changes need something more than hitting endpoints by
+hand.
 
 ## Frontend (`frontend/`)
 
@@ -60,8 +61,8 @@ unit tests.
   event date/time, dress code, the `LINKS` map (`comoChegar` only; the other two
   buttons are in-app screens), `GIFT_SUGGESTIONS`, and the PIX key. Content edits
   for the actual event go here.
-- **`frontend/api.js`** is the fetch client for the RSVP backend (`/api/rsvp`,
-  `/api/admin`; same-origin in production, proxied in dev by `next.config.js`'s
+- **`frontend/api.js`** is the fetch client for the backend (`/api/rsvp`,
+  `/api/admin/*`; same-origin in production, proxied in dev by `next.config.js`'s
   `rewrites()` — target overridable via `API_PROXY_TARGET` in
   `frontend/.env.local`).
 - **Media lives in `frontend/public/`** (`video.mp4`, `imagem-principal.png`),
@@ -71,18 +72,28 @@ unit tests.
   of `out/admin.html`, which Apache serves as a directory index with no rewrite
   rule. Removing it 404s `/admin` in production.
 
-### RSVP model
+### Modelo de convidados
 
-A guest identifies by **email only** — there is one invite for this event, so
-there is no invite code and no multi-tenant logic. The entry form also collects
-the guest's **name**, because the person who confirms is themselves a guest and
-counts toward the head count; `AdminPage` computes every group as
-`companions.length + 1`. Re-entering the same email loads the previous RSVP for
-editing (upsert by email).
+Quem cadastra é o organizador, pelo painel — não há auto-inscrição e não há
+email em lugar nenhum. Cada **grupo** (`guest_groups`) tem um `guid` (o código
+do link do WhatsApp), um `short_code` de 6 caracteres (ditado por telefone,
+protegido por limite de tentativas) e um telefone opcional. Cada pessoa do grupo
+é uma linha em `guest_members`, com `status` `pending`/`yes`/`no` — inclusive o
+responsável, que também é convidado e conta na cabeça.
 
-`AdminPage` is the organizer dashboard: totals (people, confirmations,
-companions, groups of one), a searchable table, copy-emails, and CSV export
-(BOM + semicolons so pt-BR Excel opens it correctly).
+O convidado abre `/?c=<guid>`, o código atravessa a troca de rota até
+`/confirmacao/` e ele marca pessoa por pessoa. A tela só libera o envio quando
+todos foram respondidos; o endpoint, porém, aceita subconjunto — a exigência é
+de tela, não de API.
+
+O painel escreve no banco, então toda rota `/admin/*` (fora `login`) exige
+`Authorization: Bearer <token>`, validado por `AdminSession::guard()`. O token
+vale 12h, o banco guarda só o SHA-256 dele, e o navegador o mantém em
+`sessionStorage`.
+
+O status de um grupo (**não enviado / aguardando / parcial / respondido**) é
+derivado no front por `screens/admin/groupStats.js` — uma definição só para as
+três seções do painel.
 
 ## Backend (`backend/`)
 
@@ -93,25 +104,37 @@ manual `.env` parser in `src/Config/Env.php`.
 - `index.php` is the front controller — `.htaccess` rewrites every request
   without a matching file to `index.php?route=...`, which builds a small
   `Http\Router` and dispatches.
-- `src/Controllers/RsvpController.php` — `GET /rsvp?email=` (lookup) and
-  `POST /rsvp` (upsert by email, body `{ email, name, companions }`).
-- `src/Controllers/AdminController.php` — `POST /admin` (body `{ password }`,
-  checked against `ADMIN_PASSWORD` via `hash_equals`), returns all RSVPs as raw
-  rows; the dashboard does the aggregation so the totals have one definition.
+- `src/Controllers/RsvpController.php` — público: `GET /rsvp?code=` (busca o
+  grupo por GUID ou código curto) e `POST /rsvp` (grava `{ code, responses }`).
+  Monta a resposta campo a campo: telefone, código curto e id do grupo nunca
+  saem por aqui.
+- `src/Controllers/AdminAuthController.php` — `POST /admin/login` e
+  `POST /admin/logout`.
+- `src/Controllers/GroupsController.php` — `GET /admin/groups` e os `POST`
+  `/admin/groups/create`, `/update`, `/delete`, `/message-sent`. No `update`, o
+  acompanhante que vem com `id` é **renomeado no lugar** — recriar zeraria o
+  status de quem já respondeu.
+- `src/Auth/AdminSession.php`, `src/Support/Codes.php`,
+  `src/Support/RateLimiter.php` — sessão, geração de códigos e freio de força
+  bruta no código curto.
 - `src/Database/Connection.php` — PDO singleton, prepared statements only,
   `utf8mb4`. `DB_PORT` is optional and defaults to 3306.
 - `src/Config/Env.php` — `load()` may be called more than once and **first load
   wins**; `index.php` loads `.env.local` before `.env` so a dev machine can
   override production credentials without editing `.env`. `.env.local` must never
   be uploaded.
-- `database/schema.sql` — the `rsvps` table (`email` UNIQUE, `name`, `companions`
-  as JSON-encoded `TEXT`), plus a commented `ALTER TABLE` for databases created
-  before the `name` column existed.
-- `src/.htaccess` and `database/.htaccess` deny direct HTTP access to PHP source
-  and the SQL file; the root `.htaccess` denies anything matching `^\.env`.
+- `database/schema.sql` — as tabelas `guest_groups`, `guest_members`,
+  `admin_sessions` e `code_attempts`; começa com `DROP TABLE IF EXISTS rsvps`,
+  encerrando a tabela do modelo antigo.
+- `tests/` — runner sem Composer: `"C:/xampp/php/php.exe" backend/tests/run.php`.
+  Bate na API por HTTP e trunca as tabelas, então recusa rodar se `DB_HOST` não
+  for local. **Não subir esta pasta para produção.**
+- `src/.htaccess`, `tests/.htaccess` e `database/.htaccess` deny direct HTTP
+  access to PHP source, the test runner, and the SQL file; the root `.htaccess`
+  denies anything matching `^\.env`.
 
-When changing the RSVP data model or API contract, update **both** sides by hand
-— `frontend/api.js`, `frontend/screens/ConfirmPresencaPage.jsx`,
+When changing the guest data model or API contract, update **both** sides by
+hand — `frontend/api.js`, `frontend/screens/ConfirmPresencaPage.jsx`,
 `frontend/screens/AdminPage.jsx` and the matching controller(s) — they are
 deployed independently, so nothing catches a drift between them.
 
@@ -125,13 +148,15 @@ keep example values in the docs as placeholders (`SEU-DOMINIO.com`,
 
 ## Ambiente local (armadilhas conhecidas)
 
-- O Apache em uso é o de `C:\xamppv2` (existe outra instalação em `C:\xampp` que
-  não é a ativa). O MariaDB dele está na **3307** porque a 3306 é do serviço
-  MySQL Server 8.0 do Windows.
-- `mysql.exe` não lê o `[client]` do `my.ini` do XAMPP: sem `-h 127.0.0.1 -P 3307`
-  ele conecta no MySQL 8.0 e falha com `caching_sha2_password`.
-- `htdocs\nivergio-api` é uma **junction** para `backend/`, não uma cópia.
-  Apagar arquivos por lá apaga os do repositório — já aconteceu. Para remover o
-  atalho use `cmd /c rmdir`, nunca `Remove-Item -Recurse`.
+- O XAMPP em uso é o de `C:\xampp`. O repositório fica **dentro** do
+  `htdocs` (`C:\xampp\htdocs\nivergio-api`), então a API responde em
+  `http://localhost/nivergio-api/backend/` — a raiz `/nivergio-api/` serve o
+  repositório, não o backend. É esse caminho que vai no `API_PROXY_TARGET` do
+  `frontend/.env.local`.
+- (Histórico: houve uma instalação em `C:\xamppv2`, com o MariaDB na 3307 e uma
+  *junction* `htdocs\nivergio-api` → `backend/`. Ela não existe mais. Se um dia
+  voltar a usar junction, lembre que `Remove-Item -Recurse` entra no destino e
+  apaga o repositório — use `cmd /c rmdir`.)
+- O PHP CLI **não está no PATH**: use `"C:/xampp/php/php.exe"`.
 - `npm run build` trava se o `npm run dev` estiver aberto: os dois disputam
   `frontend/.next`.

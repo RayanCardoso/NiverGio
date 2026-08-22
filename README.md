@@ -25,12 +25,13 @@ produção:
 Na primeira vez, comece pelo backend: o front depende dele para a confirmação de
 presença e para o painel.
 
-Resumo, com tudo já configurado: abra o **XAMPP Control Panel do `C:\xamppv2`**,
+Resumo, com tudo já configurado: abra o **XAMPP Control Panel do `C:\xampp`**,
 dê **Start** em Apache e MySQL, e depois `cd frontend && npm run dev`.
 
-⚠️ O Apache enxerga o backend por uma *junction* (`htdocs\nivergio-api` → esta
-pasta `backend/`). **Não é uma cópia**: apagar arquivos por lá apaga os do
-repositório. Detalhes em [backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente).
+O repositório fica **dentro** do `htdocs` (`C:\xampp\htdocs\nivergio-api`), então
+a API responde em `http://localhost/nivergio-api/backend/` — a raiz
+`/nivergio-api/` serve o repositório, não o backend. Detalhes em
+[backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente).
 
 ## Como o convite funciona
 
@@ -38,20 +39,25 @@ repositório. Detalhes em [backend/DEPLOY.md](backend/DEPLOY.md#rodar-localmente
    avança sozinho.
 2. **Informações** — imagem principal, contagem regressiva, traje sugerido e três
    botões: confirmar presença, como chegar, sugestões de presente.
-3. **Confirmar presença** — a pessoa entra com nome e email. O email é a chave
-   (entrar de novo com o mesmo email abre a confirmação anterior para editar), e
-   o nome existe porque **quem confirma também é convidado** e entra na contagem.
-   Depois ela adiciona quantos acompanhantes quiser.
+3. **Confirmar presença** — quem cadastra os convidados é o organizador, pelo
+   painel. Cada família recebe um link exclusivo (`/?c=<código>`) por WhatsApp;
+   abrindo esse link, a pessoa vê os nomes do próprio grupo e marca, **um a
+   um**, quem vai e quem não vai. Quem perder o link pode digitar o código curto
+   de 6 caracteres que o organizador dita. Não existe auto-inscrição: quem não
+   recebeu convite não entra na lista.
 4. **Presentes** — sugestões e a chave PIX com toque para copiar.
-5. **`/admin`** — painel do organizador, protegido por senha: total de pessoas,
-   total de confirmações, total de acompanhantes, quantos vêm sozinhos, a tabela
-   completa com busca, e exportação em CSV.
+5. **`/admin`** — painel do organizador, protegido por senha, em formato de
+   dashboard com três seções: **Visão geral** (totais e o que precisa de ação),
+   **Convidados** (cadastrar, editar, apagar, buscar, filtrar por status e
+   exportar CSV) e **Envios** (checklist de celular com copiar mensagem, abrir
+   WhatsApp e marcar o convite como enviado).
 
 Conteúdo da festa (data, hora, traje, PIX, sugestões de presente) fica todo em
 [`frontend/config.js`](frontend/config.js).
 
-Não há suíte de testes. O backend só roda pelo XAMPP, então mudanças nele se
-verificam batendo nos endpoints — os comandos estão no guia do backend.
+O frontend não tem suíte de testes. O backend tem uma, sem Composer
+(`"C:/xampp/php/php.exe" backend/tests/run.php`) — os comandos estão no guia do
+backend.
 
 ## Dados sensíveis
 
